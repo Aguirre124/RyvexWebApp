@@ -5,11 +5,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     allowedHosts: [
-      "lated-regardlessly-harland.ngrok-free.dev"
-    ],
-    hmr: {
-      protocol: 'wss',
-      host: 'lated-regardlessly-harland.ngrok-free.dev'
-    }
+      ".ngrok-free.dev"
+    ]
   }
 })
