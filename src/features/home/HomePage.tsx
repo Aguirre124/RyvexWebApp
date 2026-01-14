@@ -12,7 +12,7 @@ export default function HomePage() {
   const user = useAuthStore((s) => s.user)
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="min-h-screen pb-20 bg-white">
       <Header name={user?.name} />
 
       <main className="px-4 space-y-4">
