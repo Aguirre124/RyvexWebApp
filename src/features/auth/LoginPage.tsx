@@ -80,7 +80,13 @@ export default function LoginPage() {
               <Input label="Nombre" type="text" {...register('name')} />
             )}
             <Input label="Correo electrónico" type="email" {...register('email')} />
+            {errors.email && (
+              <div className="text-red-400 text-xs px-1">{errors.email.message === 'Required' ? 'El correo electrónico es obligatorio' : 'Ingresa un correo electrónico válido'}</div>
+            )}
             <Input label="Contraseña" type="password" {...register('password')} />
+            {errors.password && (
+              <div className="text-red-400 text-xs px-1">{errors.password.message === 'Required' ? 'La contraseña es obligatoria' : 'La contraseña debe tener al menos 4 caracteres'}</div>
+            )}
             <Button type="submit">{loading ? (mode === 'login' ? 'Entrando...' : 'Registrando...') : mode === 'login' ? 'Entrar' : 'Registrarse'}</Button>
           </form>
           <div className="text-xs text-muted text-center">
