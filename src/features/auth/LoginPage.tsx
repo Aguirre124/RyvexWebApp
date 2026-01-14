@@ -61,7 +61,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="mb-6 text-center">
-          <div className="text-2xl font-extrabold">RYVEX</div>
+          <div className="text-2xl font-extrabold">Team Sports</div>
           <div className="text-sm text-muted">Organiza competiciones amateur</div>
         </div>
 
