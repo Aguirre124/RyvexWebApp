@@ -37,7 +37,7 @@ export default function Step1Format() {
 
   const handleContinue = () => {
     if (!selectedFormatLocal) {
-      setError('Please select a format')
+      setError('Por favor selecciona un formato antes de continuar')
       return
     }
     setError(null)
@@ -80,7 +80,7 @@ export default function Step1Format() {
 
       <Button
         onClick={handleContinue}
-        disabled={!selectedFormatLocal || createMatchMutation.isPending}
+        disabled={createMatchMutation.isPending}
         variant="primary"
       >
         {createMatchMutation.isPending ? 'Creando...' : 'Continuar'}
