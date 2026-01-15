@@ -1,4 +1,5 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import Header from '../../components/Header'
 import BottomNav from '../../components/BottomNav'
 import { useAuthStore } from '../auth/auth.store'
@@ -10,6 +11,7 @@ const mockCompetitions = [
 
 export default function HomePage() {
   const user = useAuthStore((s) => s.user)
+  const navigate = useNavigate()
 
   return (
     <div className="min-h-screen pb-20">
@@ -17,7 +19,12 @@ export default function HomePage() {
 
       <main className="px-4 space-y-4">
         <div className="flex gap-3">
-          <button className="flex-1 py-3 rounded-lg bg-primary text-black font-semibold">Crear Partido</button>
+          <button 
+            onClick={() => navigate('/matches/new')}
+            className="flex-1 py-3 rounded-lg bg-primary text-black font-semibold"
+          >
+            Crear Partido
+          </button>
           <button className="flex-1 py-3 rounded-lg bg-[#0b1220] border border-[#1f2937] text-white font-semibold">Crear Torneo</button>
         </div>
 

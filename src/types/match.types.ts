@@ -1,0 +1,74 @@
+export type SportFormat = 'FUTSAL' | 'F5' | 'F7' | 'F11'
+
+export type FormatDetails = {
+  id: string
+  sportId: string
+  name: SportFormat
+  onFieldPlayers: number
+  substitutesAllowed: number
+  maxSquadSize: number
+}
+
+export type TeamSide = 'HOME' | 'AWAY'
+
+export type Team = {
+  id: string
+  name: string
+  isPublic: boolean
+  captainId: string
+  memberCount: number
+}
+
+export type ChallengeStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED'
+
+export type Challenge = {
+  id: string
+  matchId: string
+  challengedTeamId: string
+  status: ChallengeStatus
+  urlToShare: string
+  createdAt: string
+}
+
+export type InviteStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED'
+
+export type Invite = {
+  id: string
+  matchId: string
+  teamId: string
+  inviteeEmail?: string
+  inviteePhone?: string
+  inviteeUserId?: string
+  status: InviteStatus
+  token: string
+}
+
+export type MatchStatus = 'DRAFT' | 'SCHEDULED' | 'LIVE' | 'COMPLETED' | 'CANCELLED'
+
+export type Match = {
+  id: string
+  sportId: string
+  formatId: string
+  status: MatchStatus
+  homeTeamId?: string
+  awayTeamId?: string
+  createdAt: string
+}
+
+export type TeamRoster = {
+  teamId: string
+  teamName: string
+  side: TeamSide
+  invitedCount: number
+  acceptedCount: number
+  minRequired: number
+  maxAllowed: number
+}
+
+export type MatchSummary = {
+  match: Match
+  format: FormatDetails
+  homeTeam: TeamRoster | null
+  awayTeam: TeamRoster | null
+  challenge?: Challenge
+}
