@@ -3,10 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import Button from '../../components/Button'
-import Input from '../../components/Input'
-import Divider from '../../components/Divider'
-import { useAuthStore } from './auth.store'
+
+import logo from '../../assets/teamssports-logo.png';
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -60,7 +58,9 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        <div className="mb-6 text-center">
+
+        <div className="mb-6 text-center flex flex-col items-center">
+          <img src={logo} alt="Team Sports Logo" className="w-24 h-24 mb-2" />
           <div className="text-2xl font-extrabold">Team Sports</div>
           <div className="text-sm text-muted">Organiza competiciones amateur</div>
         </div>
