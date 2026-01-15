@@ -3,8 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-
-import logo from '../../assets/teamssports-logo.png';
+import Button from '../../components/Button'
+import Input from '../../components/Input'
+import Divider from '../../components/Divider'
+import { useAuthStore } from './auth.store'
+import logo from '../../assets/logo.png'
 
 const loginSchema = z.object({
   email: z.string().email(),
