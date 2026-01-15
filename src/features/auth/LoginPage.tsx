@@ -7,6 +7,7 @@ import Button from '../../components/Button'
 import Input from '../../components/Input'
 import Divider from '../../components/Divider'
 import { useAuthStore } from './auth.store'
+import logo from '../../assets/logo.png'
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -67,7 +68,6 @@ export default function LoginPage() {
           <div className="text-2xl font-extrabold">TEAMS SPORTS</div>
           <div className="text-sm text-muted">Organiza competiciones amateur</div>
         </div>
-
         <div className="card space-y-4">
           {error && (
             <div className="bg-red-900 text-red-200 text-sm rounded p-2 text-center">
