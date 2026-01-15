@@ -18,7 +18,13 @@ export default function Header({ name }: { name?: string }) {
       <div className="flex items-center gap-3">
         <button className="w-9 h-9 rounded-full bg-[#071224] flex items-center justify-center">🔔</button>
         <div className="w-9 h-9 rounded-full bg-[#0b1220] flex items-center justify-center">👤</div>
-        <button className="ml-2 px-3 py-1 rounded bg-[#222] text-xs text-muted hover:bg-primary hover:text-black transition" onClick={handleLogout}>Cerrar sesión</button>
+        <button 
+          className="w-9 h-9 rounded-full bg-[#222] flex items-center justify-center text-lg hover:bg-primary hover:text-black transition" 
+          onClick={handleLogout}
+          title="Cerrar sesión"
+        >
+          🚪
+        </button>
       </div>
     </header>
   )
