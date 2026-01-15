@@ -63,8 +63,10 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
 
         <div className="mb-6 text-center flex flex-col items-center">
-          <img src={logo} alt="Team Sports Logo" className="w-24 h-24 mb-2" />
-          <div className="text-2xl font-extrabold">Team Sports</div>
+          <div className="w-36 h-36 mb-2 rounded-full flex items-center justify-center bg-gradient-to-br from-primary/40 via-transparent to-transparent shadow-lg overflow-hidden">
+            <img src={logo} alt="Team Sports Logo" className="w-32 h-32 rounded-full object-cover" />
+          </div>
+          <div className="text-2xl font-extrabold">TEAMS SPORTS</div>
           <div className="text-sm text-muted">Organiza competiciones amateur</div>
         </div>
 
