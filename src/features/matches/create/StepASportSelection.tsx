@@ -28,8 +28,8 @@ export default function StepASportSelection() {
     return (
       <div className="space-y-4">
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold mb-2">Selecciona el deporte</h2>
-          <p className="text-sm text-muted">Cargando deportes disponibles...</p>
+          <h2 className="text-2xl font-bold mb-2 text-white">Selecciona el deporte</h2>
+          <p className="text-sm text-gray-400">Cargando deportes disponibles...</p>
         </div>
         <div className="grid grid-cols-2 gap-3">
           {[1, 2, 3, 4].map((i) => (
@@ -44,11 +44,14 @@ export default function StepASportSelection() {
     return (
       <div className="space-y-4">
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold mb-2">Error</h2>
-          <p className="text-sm text-muted">No se pudieron cargar los deportes</p>
+          <h2 className="text-2xl font-bold mb-2 text-white">Error</h2>
+          <p className="text-sm text-gray-400">No se pudieron cargar los deportes</p>
         </div>
         <div className="bg-red-900 text-red-200 text-sm rounded p-3 text-center">
           {(error as any)?.message || 'Error al cargar deportes'}
+        </div>
+        <div className="text-xs text-gray-400 text-center">
+          API: {import.meta.env.VITE_API_URL || 'https://lated-regardlessly-harland.ngrok-free.dev/api/v1'}
         </div>
         <Button onClick={() => window.location.reload()} variant="secondary">
           Reintentar
@@ -61,11 +64,11 @@ export default function StepASportSelection() {
     return (
       <div className="space-y-4">
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold mb-2">Selecciona el deporte</h2>
+          <h2 className="text-2xl font-bold mb-2 text-white">Selecciona el deporte</h2>
         </div>
         <Card>
           <div className="text-center py-8">
-            <p className="text-muted">No hay deportes creados</p>
+            <p className="text-gray-400">No hay deportes creados</p>
           </div>
         </Card>
       </div>
@@ -75,8 +78,8 @@ export default function StepASportSelection() {
   return (
     <div className="space-y-4">
       <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold mb-2">Selecciona el deporte</h2>
-        <p className="text-sm text-muted">Elige el deporte para tu partido</p>
+        <h2 className="text-2xl font-bold mb-2 text-white">Selecciona el deporte</h2>
+        <p className="text-sm text-gray-400">Elige el deporte para tu partido</p>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
