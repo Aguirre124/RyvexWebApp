@@ -7,6 +7,7 @@ import Button from '../../components/Button'
 import Input from '../../components/Input'
 import Divider from '../../components/Divider'
 import { useAuthStore } from './auth.store'
+import logo from '../../assets/logo.png'
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -60,11 +61,13 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        <div className="mb-6 text-center">
-          <div className="text-2xl font-extrabold">RYVEX</div>
+        <div className="mb-6 text-center flex flex-col items-center">
+          <div className="w-36 h-36 mb-2 rounded-full flex items-center justify-center bg-gradient-to-br from-primary/40 via-transparent to-transparent shadow-lg overflow-hidden">
+            <img src={logo} alt="Team Sports Logo" className="w-32 h-32 rounded-full object-cover" />
+          </div>
+          <div className="text-2xl font-extrabold">TEAMS SPORTS</div>
           <div className="text-sm text-muted">Organiza competiciones amateur</div>
         </div>
-
         <div className="card space-y-4">
           {error && (
             <div className="bg-red-900 text-red-200 text-sm rounded p-2 text-center">
