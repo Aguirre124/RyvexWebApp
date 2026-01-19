@@ -51,6 +51,7 @@ export default function StepDFormatSelection() {
   const { selectedSport, homeTeam, awayTeam, setFormat, resetDraft } = useMatchDraftStore()
   const [selectedFormatLocal, setSelectedFormatLocal] = useState<FormatOption | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
 
   const createMatchMutation = useMutation({
     mutationFn: async (format: FormatOption) => {
@@ -71,14 +72,18 @@ export default function StepDFormatSelection() {
     },
     onSuccess: (match, format) => {
       setFormat(format.code)
-      alert('¡Partido amistoso creado exitosamente!')
-      resetDraft()
-      navigate('/home')
+      setShowSuccessModal(true)
     },
     onError: (err: any) => {
       setError(err.response?.data?.message || 'Error al crear el partido')
     }
   })
+
+  const handleSuccessClose = () => {
+    setShowSuccessModal(false)
+    resetDraft()
+    navigate('/home')
+  }
 
   const handleContinue = () => {
     if (!selectedFormatLocal) {
@@ -157,6 +162,28 @@ export default function StepDFormatSelection() {
           {createMatchMutation.isPending ? 'Creando partido...' : 'Crear partido'}
         </Button>
       </div>
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+          <div className="bg-[#0a1628] border border-[#1f2937] rounded-lg p-6 max-w-sm w-full">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-green-500 bg-opacity-20 rounded-full flex items-center justify-center mx-auto">
+                <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-white">¡Partido creado!</h3>
+              <p className="text-gray-400 text-sm">
+                El partido amistoso se ha creado exitosamente
+              </p>
+              <Button onClick={handleSuccessClose} variant="primary" className="w-full">
+                Aceptar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
