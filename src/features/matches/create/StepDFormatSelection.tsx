@@ -25,21 +25,21 @@ const formats: FormatOption[] = [
   },
   {
     code: 'F5',
-    name: 'F5',
+    name: 'Fútbol 5',
     onFieldPlayers: 5,
     substitutesAllowed: 5,
     maxSquadSize: 10
   },
   {
     code: 'F7',
-    name: 'F7',
+    name: 'Fútbol 7',
     onFieldPlayers: 7,
     substitutesAllowed: 5,
     maxSquadSize: 12
   },
   {
     code: 'F11',
-    name: 'F11',
+    name: 'Fútbol 11',
     onFieldPlayers: 11,
     substitutesAllowed: 5,
     maxSquadSize: 16
