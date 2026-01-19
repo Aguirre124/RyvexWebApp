@@ -6,6 +6,7 @@ import * as z from 'zod'
 import Button from '../../components/Button'
 import Input from '../../components/Input'
 import Divider from '../../components/Divider'
+import TermsModal from './TermsModal'
 import { useAuthStore } from './auth.store'
 import logo from '../../assets/logo.png'
 
@@ -28,6 +29,8 @@ export default function LoginPage() {
   const loading = useAuthStore((s) => s.loading)
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [error, setError] = useState<string | null>(null)
+  const [showTerms, setShowTerms] = useState(false)
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
 
   const {
     register,
@@ -90,25 +93,60 @@ export default function LoginPage() {
             {errors.password && (
               <div className="text-red-400 text-xs px-1">{errors.password.message === 'Required' ? 'La contraseña es obligatoria' : 'La contraseña debe tener al menos 4 caracteres'}</div>
             )}
-            <Button type="submit">{loading ? (mode === 'login' ? 'Entrando...' : 'Registrando...') : mode === 'login' ? 'Entrar' : 'Registrarse'}</Button>
+            
+            {mode === 'register' && (
+              <div className="flex items-start gap-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  className="mt-1 w-4 h-4 rounded border-gray-600 bg-[#0b1220] text-primary focus:ring-primary focus:ring-offset-0"
+                />
+                <label htmlFor="terms" className="text-xs text-gray-400">
+                  Acepto los términos y condiciones de uso de TEAMS SPORTS
+                </label>
+              </div>
+            )}
+            
+            <Button 
+              type="submit"
+              disabled={mode === 'register' && !acceptedTerms}
+            >
+              {loading ? (mode === 'login' ? 'Entrando...' : 'Registrando...') : mode === 'login' ? 'Entrar' : 'Registrarse'}
+            </Button>
           </form>
           <div className="text-xs text-muted text-center">
             {mode === 'login' ? (
               <>
                 ¿Nuevo en RYVEX?{' '}
-                <button className="text-primary underline" type="button" onClick={() => { setMode('register'); reset() }}>Regístrate</button>
+                <button className="text-primary underline" type="button" onClick={() => { setMode('register'); setAcceptedTerms(false); reset() }}>Regístrate</button>
               </>
             ) : (
               <>
                 ¿Ya tienes cuenta?{' '}
-                <button className="text-primary underline" type="button" onClick={() => { setMode('login'); reset() }}>Inicia sesión</button>
+                <button className="text-primary underline" type="button" onClick={() => { setMode('login'); setAcceptedTerms(false); reset() }}>Inicia sesión</button>
               </>
             )}
           </div>
         </div>
 
-        <div className="text-xs text-muted mt-4 text-center">Al continuar aceptas los términos de servicio de RYVEX</div>
+        {mode === 'register' && (
+          <div className="text-xs text-gray-400 mt-4 text-center">
+            Conoce nuestros{' '}
+            <button
+              type="button"
+              onClick={() => setShowTerms(true)}
+              className="text-primary underline hover:text-primary/80"
+            >
+              Términos y Condiciones
+            </button>
+            {' '}de TEAMS SPORTS
+          </div>
+        )}
       </div>
+
+      {showTerms && <TermsModal onClose={() => setShowTerms(false)} />}
     </div>
   )
 }

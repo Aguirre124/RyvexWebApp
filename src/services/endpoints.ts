@@ -54,6 +54,14 @@ export const matchesApi = {
     return data
   },
 
+  getMyMatches: async (params?: {
+    status?: string
+    limit?: number
+  }): Promise<Match[]> => {
+    const { data } = await apiClient.get('/matches', { params })
+    return data
+  },
+
   getSummary: async (matchId: string): Promise<MatchSummary> => {
     const { data } = await apiClient.get(`/matches/${matchId}/summary`)
     return data
@@ -100,7 +108,11 @@ export const invitesApi = {
       }>
     }
   ): Promise<void> => {
-    await apiClient.post(`/matches/${matchId}/invites`, payload)
+    // Send invite through team endpoint
+    await apiClient.post(`/teams/${payload.teamId}/invites`, {
+      matchId,
+      invitees: payload.invitees
+    })
   },
 
   accept: async (token: string): Promise<{ matchId: string }> => {

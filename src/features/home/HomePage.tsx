@@ -1,8 +1,11 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import Header from '../../components/Header'
 import BottomNav from '../../components/BottomNav'
+import Badge from '../../components/Badge'
 import { useAuthStore } from '../auth/auth.store'
+import { matchesApi } from '../../services/endpoints'
 
 const mockCompetitions = [
   { id: 'c1', name: 'Liga de Domingo', games: 8 },
@@ -12,6 +15,11 @@ const mockCompetitions = [
 export default function HomePage() {
   const user = useAuthStore((s) => s.user)
   const navigate = useNavigate()
+
+  const { data: matches = [], isLoading } = useQuery({
+    queryKey: ['matches', 'my'],
+    queryFn: () => matchesApi.getMyMatches({ limit: 10 })
+  })
 
   return (
     <div className="min-h-screen pb-20">
@@ -25,7 +33,10 @@ export default function HomePage() {
           >
             Crear Partido
           </button>
-          <button className="flex-1 py-3 rounded-lg bg-[#0b1220] border border-[#1f2937] text-white font-semibold">Crear Torneo</button>
+          <button className="flex-1 py-3 rounded-lg bg-[#0b1220] border border-[#1f2937] text-white font-semibold opacity-50 cursor-not-allowed">
+            Crear Torneo
+            <span className="block text-[10px] font-normal text-gray-500 mt-0.5">Disponible pronto</span>
+          </button>
         </div>
 
         <section className="card">
@@ -47,8 +58,44 @@ export default function HomePage() {
         </section>
 
         <section className="card">
-          <h3 className="font-bold mb-2">Partido Activo</h3>
-          <div className="text-sm text-muted">No hay partido activo. Crea uno para comenzar.</div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-bold text-white">Mis Partidos</h3>
+            {matches.length > 0 && (
+              <span className="text-xs text-gray-400">Ver todos</span>
+            )}
+          </div>
+          {isLoading ? (
+            <div className="text-sm text-gray-400 py-4 text-center">Cargando partidos...</div>
+          ) : matches.length === 0 ? (
+            <div className="text-sm text-gray-400">No tienes partidos creados. Crea uno para comenzar.</div>
+          ) : (
+            <div className="space-y-2">
+              {matches.map((match) => (
+                <div
+                  key={match.id}
+                  onClick={() => navigate(`/matches/${match.id}/summary`)}
+                  className="flex items-center justify-between p-3 bg-[#071422] rounded cursor-pointer hover:bg-[#0a1a2e] transition-colors"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="info">{match.homeTeam?.name || 'Local'}</Badge>
+                      <span className="text-gray-500 text-xs">vs</span>
+                      <Badge variant="warning">{match.awayTeam?.name || 'Visitante'}</Badge>
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {match.type === 'FRIENDLY' ? 'Amistoso' : 'Torneo'}
+                      {match.status && (
+                        <span className="ml-2 text-primary">• {match.status}</span>
+                      )}
+                    </div>
+                  </div>
+                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       </main>
 

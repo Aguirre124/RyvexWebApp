@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import Button from '../../../components/Button'
@@ -6,6 +6,7 @@ import Card from '../../../components/Card'
 import Badge from '../../../components/Badge'
 import Header from '../../../components/Header'
 import BottomNav from '../../../components/BottomNav'
+import InvitePlayerModal from '../invites/InvitePlayerModal'
 import { matchesApi } from '../../../services/endpoints'
 import { useAuthStore } from '../../auth/auth.store'
 
@@ -13,6 +14,11 @@ export default function MatchSummaryPage() {
   const { matchId } = useParams<{ matchId: string }>()
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
+  const [inviteModal, setInviteModal] = useState<{
+    teamId: string
+    teamName: string
+    side: 'HOME' | 'AWAY'
+  } | null>(null)
 
   const { data: summary, isLoading, error } = useQuery({
     queryKey: ['match-summary', matchId],
@@ -114,6 +120,17 @@ export default function MatchSummaryPage() {
                   jugadores
                 </Badge>
               )}
+              <Button
+                onClick={() => setInviteModal({
+                  teamId: summary.homeTeam!.teamId,
+                  teamName: summary.homeTeam!.teamName,
+                  side: 'HOME'
+                })}
+                variant="primary"
+                className="w-full mt-2"
+              >
+                + Agregar jugador
+              </Button>
             </div>
           </Card>
         )}
@@ -148,6 +165,17 @@ export default function MatchSummaryPage() {
                   jugadores
                 </Badge>
               )}
+              <Button
+                onClick={() => setInviteModal({
+                  teamId: summary.awayTeam!.teamId,
+                  teamName: summary.awayTeam!.teamName,
+                  side: 'AWAY'
+                })}
+                variant="primary"
+                className="w-full mt-2"
+              >
+                + Agregar jugador
+              </Button>
             </div>
           </Card>
         )}
@@ -174,6 +202,16 @@ export default function MatchSummaryPage() {
       </main>
 
       <BottomNav />
+
+      {inviteModal && (
+        <InvitePlayerModal
+          matchId={matchId!}
+          teamId={inviteModal.teamId}
+          teamName={inviteModal.teamName}
+          side={inviteModal.side}
+          onClose={() => setInviteModal(null)}
+        />
+      )}
     </div>
   )
 }
