@@ -11,9 +11,18 @@ const apiClient = axios.create({
 // Add auth token to all requests
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+    // Read token from auth store's persisted storage
+    const authStorage = localStorage.getItem('ryvex-auth')
+    if (authStorage) {
+      try {
+        const authData = JSON.parse(authStorage)
+        const token = authData.state?.token
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`
+        }
+      } catch (e) {
+        console.error('Failed to parse auth storage:', e)
+      }
     }
     return config
   },
@@ -28,7 +37,7 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token expired or invalid
-      localStorage.removeItem('token')
+      localStorage.removeItem('ryvex-auth')
       window.location.href = '/login'
     }
     return Promise.reject(error)

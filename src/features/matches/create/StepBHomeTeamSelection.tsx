@@ -44,8 +44,8 @@ export default function StepBHomeTeamSelection() {
   return (
     <div className="space-y-4">
       <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold mb-2">Selecciona tu equipo local</h2>
-        <p className="text-sm text-muted">Equipo HOME para {selectedSport.name}</p>
+        <h2 className="text-2xl font-bold text-white mb-2">Selecciona tu equipo local</h2>
+        <p className="text-sm text-gray-400">Equipo HOME para {selectedSport.name}</p>
       </div>
 
       <Input
@@ -56,11 +56,11 @@ export default function StepBHomeTeamSelection() {
 
       <div className="space-y-2 max-h-64 overflow-y-auto">
         {isLoading ? (
-          <div className="text-center py-4 text-muted">Buscando...</div>
+          <div className="text-center py-4 text-gray-400">Buscando...</div>
         ) : teams.length === 0 ? (
           <Card>
             <div className="text-center py-6 space-y-3">
-              <p className="text-muted text-sm">
+              <p className="text-gray-300 text-sm">
                 {searchQuery
                   ? 'No se encontraron equipos con ese nombre'
                   : 'No tienes equipos para este deporte. Debes crear uno para continuar.'}
