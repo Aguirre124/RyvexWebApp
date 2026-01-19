@@ -63,7 +63,6 @@ export default function StepDFormatSelection() {
         matchType: 'FRIENDLY',
         homeTeamId: homeTeam.id,
         awayTeamId: awayTeam.id,
-        formatCode: format.code,
         tournamentId: null,
         venueId: null,
         scheduledAt: null,
