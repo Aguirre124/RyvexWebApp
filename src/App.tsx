@@ -8,6 +8,12 @@ import CreateMatchWizardPage from './features/matches/create/CreateMatchWizardPa
 import MatchSummaryPage from './features/matches/summary/MatchSummaryPage'
 import ChallengePage from './features/challenge/ChallengePage'
 import InviteAcceptPage from './features/invites/InviteAcceptPage'
+import MatchCreateLayout from './features/matches/create/MatchCreateLayout'
+import StepASportSelection from './features/matches/create/StepASportSelection'
+import StepBHomeTeamSelection from './features/matches/create/StepBHomeTeamSelection'
+import StepCAwayTeamSelection from './features/matches/create/StepCAwayTeamSelection'
+import StepDFormatSelection from './features/matches/create/StepDFormatSelection'
+import TeamCreatePage from './features/teams/TeamCreatePage'
 import { useAuthStore } from './features/auth/auth.store'
 
 const queryClient = new QueryClient({
@@ -39,6 +45,27 @@ export default function App() {
           element={
             <ProtectedRoute>
               <HomePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/matches/create/*"
+          element={
+            <ProtectedRoute>
+              <MatchCreateLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<StepASportSelection />} />
+          <Route path="home-team" element={<StepBHomeTeamSelection />} />
+          <Route path="away-team" element={<StepCAwayTeamSelection />} />
+          <Route path="format" element={<StepDFormatSelection />} />
+        </Route>
+        <Route
+          path="/teams/create"
+          element={
+            <ProtectedRoute>
+              <TeamCreatePage />
             </ProtectedRoute>
           }
         />

@@ -7,6 +7,14 @@ import type {
   FormatDetails
 } from '../types/match.types'
 
+// ==================== SPORTS ====================
+export const sportsApi = {
+  getAll: async (): Promise<Array<{ id: string; name: string }>> => {
+    const { data } = await apiClient.get('/sports')
+    return data
+  }
+}
+
 // ==================== TEAMS ====================
 export const teamsApi = {
   search: async (params: {
@@ -16,6 +24,17 @@ export const teamsApi = {
   }): Promise<Team[]> => {
     const { data } = await apiClient.get('/teams', { params })
     return data
+  },
+
+  create: async (payload: {
+    name: string
+    sportId: string
+    captainId: string
+    description?: string
+    logoUrl?: string
+  }): Promise<Team> => {
+    const { data } = await apiClient.post('/teams', payload)
+    return data
   }
 }
 
@@ -23,7 +42,13 @@ export const teamsApi = {
 export const matchesApi = {
   create: async (payload: {
     sportId: string
-    formatId: string
+    matchType: 'FRIENDLY' | 'TOURNAMENT'
+    homeTeamId: string
+    awayTeamId: string
+    tournamentId?: string | null
+    venueId?: string | null
+    scheduledAt?: string | null
+    durationMin?: number | null
   }): Promise<Match> => {
     const { data } = await apiClient.post('/matches', payload)
     return data

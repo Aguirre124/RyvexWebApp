@@ -20,18 +20,11 @@ export default function Step1Format() {
 
   const createMatchMutation = useMutation({
     mutationFn: async (format: FormatDetails) => {
-      return await matchesApi.create({
-        sportId,
-        formatId: format.id
-      })
-    },
-    onSuccess: (match, format) => {
-      setMatchId(match.id)
-      setFormat(format)
-      setStep(2)
+      // This old wizard is deprecated - use /matches/create flow instead
+      throw new Error('This wizard is deprecated. Please use the new Create Match flow.')
     },
     onError: (err: any) => {
-      setError(err.response?.data?.message || 'Failed to create match')
+      setError('Este asistente está obsoleto. Por favor usa "Crear Partido" desde la página de inicio.')
     }
   })
 

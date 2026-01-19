@@ -20,7 +20,7 @@ export default function HomePage() {
       <main className="px-4 space-y-4">
         <div className="flex gap-3">
           <button 
-            onClick={() => navigate('/matches/new')}
+            onClick={() => navigate('/matches/create')}
             className="flex-1 py-3 rounded-lg bg-primary text-black font-semibold"
           >
             Crear Partido

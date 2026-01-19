@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
+  baseURL: import.meta.env.VITE_API_URL || 'https://lated-regardlessly-harland.ngrok-free.dev/api/v1',
   headers: {
     'Content-Type': 'application/json'
   }
