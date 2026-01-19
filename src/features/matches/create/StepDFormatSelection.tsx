@@ -63,6 +63,7 @@ export default function StepDFormatSelection() {
         matchType: 'FRIENDLY',
         homeTeamId: homeTeam.id,
         awayTeamId: awayTeam.id,
+        formatCode: format.code,
         tournamentId: null,
         venueId: null,
         scheduledAt: null,
@@ -98,22 +99,22 @@ export default function StepDFormatSelection() {
   return (
     <div className="space-y-4">
       <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold mb-2">Selecciona el formato</h2>
-        <p className="text-sm text-muted">Elige el tipo de partido que quieres crear</p>
+        <h2 className="text-2xl font-bold text-white mb-2">Selecciona el formato</h2>
+        <p className="text-sm text-gray-400">Elige el tipo de partido que quieres crear</p>
       </div>
 
       <Card className="bg-[#071422]">
         <div className="space-y-2 text-sm">
           <div className="flex items-center justify-between">
-            <span className="text-muted">Deporte:</span>
-            <span className="font-medium">{selectedSport.name}</span>
+            <span className="text-gray-400">Deporte:</span>
+            <span className="font-medium text-white">{selectedSport.name}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-muted">Local:</span>
+            <span className="text-gray-400">Local:</span>
             <Badge variant="info">{homeTeam.name}</Badge>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-muted">Visitante:</span>
+            <span className="text-gray-400">Visitante:</span>
             <Badge variant="warning">{awayTeam.name}</Badge>
           </div>
         </div>
@@ -133,11 +134,11 @@ export default function StepDFormatSelection() {
             onClick={() => setSelectedFormatLocal(format)}
           >
             <div className="text-center">
-              <div className="text-xl font-bold mb-2">{format.name}</div>
-              <div className="text-sm text-muted space-y-1">
+              <div className="text-xl font-bold text-white mb-2">{format.name}</div>
+              <div className="text-sm text-gray-300 space-y-1">
                 <div>{format.onFieldPlayers} jugadores</div>
                 <div>{format.substitutesAllowed} suplentes</div>
-                <div className="text-xs pt-1 border-t border-[#1f2937] mt-2">
+                <div className="text-xs pt-1 border-t border-[#1f2937] mt-2 text-gray-400">
                   Máx. {format.maxSquadSize} convocados
                 </div>
               </div>

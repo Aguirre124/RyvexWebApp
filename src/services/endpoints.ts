@@ -45,6 +45,7 @@ export const matchesApi = {
     matchType: 'FRIENDLY' | 'TOURNAMENT'
     homeTeamId: string
     awayTeamId: string
+    formatCode?: string
     tournamentId?: string | null
     venueId?: string | null
     scheduledAt?: string | null
