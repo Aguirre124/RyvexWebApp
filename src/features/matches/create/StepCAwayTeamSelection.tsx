@@ -45,7 +45,7 @@ export default function StepCAwayTeamSelection() {
       return
     }
     setAwayTeam(selectedTeam)
-    navigate('/matches/create/format')
+    navigate('/matches/create/summary')
   }
 
   const handleCreateTeam = () => {

@@ -7,53 +7,13 @@ import Badge from '../../../components/Badge'
 import { matchesApi } from '../../../services/endpoints'
 import { useMatchDraftStore } from '../../../store/matchDraft.store'
 
-type FormatOption = {
-  code: 'FUTSAL' | 'F5' | 'F7' | 'F11'
-  name: string
-  onFieldPlayers: number
-  substitutesAllowed: number
-  maxSquadSize: number
-}
-
-const formats: FormatOption[] = [
-  {
-    code: 'FUTSAL',
-    name: 'FUTSAL',
-    onFieldPlayers: 5,
-    substitutesAllowed: 5,
-    maxSquadSize: 10
-  },
-  {
-    code: 'F5',
-    name: 'F5',
-    onFieldPlayers: 5,
-    substitutesAllowed: 5,
-    maxSquadSize: 10
-  },
-  {
-    code: 'F7',
-    name: 'F7',
-    onFieldPlayers: 7,
-    substitutesAllowed: 5,
-    maxSquadSize: 12
-  },
-  {
-    code: 'F11',
-    name: 'F11',
-    onFieldPlayers: 11,
-    substitutesAllowed: 5,
-    maxSquadSize: 16
-  }
-]
-
 export default function StepDFormatSelection() {
   const navigate = useNavigate()
-  const { selectedSport, homeTeam, awayTeam, setFormat, resetDraft } = useMatchDraftStore()
-  const [selectedFormatLocal, setSelectedFormatLocal] = useState<FormatOption | null>(null)
+  const { selectedSport, homeTeam, awayTeam, resetDraft } = useMatchDraftStore()
   const [error, setError] = useState<string | null>(null)
 
   const createMatchMutation = useMutation({
-    mutationFn: async (format: FormatOption) => {
+    mutationFn: async () => {
       if (!selectedSport || !homeTeam || !awayTeam) {
         throw new Error('Faltan datos necesarios')
       }
@@ -63,16 +23,13 @@ export default function StepDFormatSelection() {
         matchType: 'FRIENDLY',
         homeTeamId: homeTeam.id,
         awayTeamId: awayTeam.id,
-        formatCode: format.code,
         tournamentId: null,
         venueId: null,
         scheduledAt: null,
         durationMin: null
       })
     },
-    onSuccess: (match, format) => {
-      setFormat(format.code)
-      // Show success message
+    onSuccess: () => {
       alert('¡Partido amistoso creado exitosamente!')
       resetDraft()
       navigate('/home')
@@ -83,12 +40,8 @@ export default function StepDFormatSelection() {
   })
 
   const handleContinue = () => {
-    if (!selectedFormatLocal) {
-      setError('Por favor selecciona un formato antes de continuar')
-      return
-    }
     setError(null)
-    createMatchMutation.mutate(selectedFormatLocal)
+    createMatchMutation.mutate()
   }
 
   if (!selectedSport || !homeTeam || !awayTeam) {
@@ -99,15 +52,19 @@ export default function StepDFormatSelection() {
   return (
     <div className="space-y-4">
       <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-white mb-2">Selecciona el formato</h2>
-        <p className="text-sm text-gray-400">Elige el tipo de partido que quieres crear</p>
+        <h2 className="text-2xl font-bold text-white mb-2">Confirmar partido</h2>
+        <p className="text-sm text-gray-400">Revisa los detalles antes de crear el partido</p>
       </div>
 
       <Card className="bg-[#071422]">
-        <div className="space-y-2 text-sm">
+        <div className="space-y-3 text-sm">
           <div className="flex items-center justify-between">
             <span className="text-gray-400">Deporte:</span>
             <span className="font-medium text-white">{selectedSport.name}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-gray-400">Tipo:</span>
+            <span className="font-medium text-white">Partido Amistoso</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-gray-400">Local:</span>
@@ -125,27 +82,6 @@ export default function StepDFormatSelection() {
           {error}
         </div>
       )}
-
-      <div className="grid grid-cols-2 gap-3">
-        {formats.map((format) => (
-          <Card
-            key={format.code}
-            selected={selectedFormatLocal?.code === format.code}
-            onClick={() => setSelectedFormatLocal(format)}
-          >
-            <div className="text-center">
-              <div className="text-xl font-bold text-white mb-2">{format.name}</div>
-              <div className="text-sm text-gray-300 space-y-1">
-                <div>{format.onFieldPlayers} jugadores</div>
-                <div>{format.substitutesAllowed} suplentes</div>
-                <div className="text-xs pt-1 border-t border-[#1f2937] mt-2 text-gray-400">
-                  Máx. {format.maxSquadSize} convocados
-                </div>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
 
       <div className="flex gap-3">
         <Button onClick={() => navigate('/matches/create/away-team')} variant="secondary">

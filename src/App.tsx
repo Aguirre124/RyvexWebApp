@@ -59,7 +59,7 @@ export default function App() {
           <Route index element={<StepASportSelection />} />
           <Route path="home-team" element={<StepBHomeTeamSelection />} />
           <Route path="away-team" element={<StepCAwayTeamSelection />} />
-          <Route path="format" element={<StepDFormatSelection />} />
+          <Route path="summary" element={<StepDFormatSelection />} />
         </Route>
         <Route
           path="/teams/create"
