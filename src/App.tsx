@@ -13,6 +13,7 @@ import StepASportSelection from './features/matches/create/StepASportSelection'
 import StepBHomeTeamSelection from './features/matches/create/StepBHomeTeamSelection'
 import StepCAwayTeamSelection from './features/matches/create/StepCAwayTeamSelection'
 import StepDFormatSelection from './features/matches/create/StepDFormatSelection'
+import Step3Invites from './features/matches/create/components/Step3Invites'
 import TeamCreatePage from './features/teams/TeamCreatePage'
 import { useAuthStore } from './features/auth/auth.store'
 
@@ -61,6 +62,14 @@ export default function App() {
           <Route path="away-team" element={<StepCAwayTeamSelection />} />
           <Route path="format" element={<StepDFormatSelection />} />
         </Route>
+        <Route
+          path="/matches/:matchId/invites"
+          element={
+            <ProtectedRoute>
+              <Step3Invites />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/teams/create"
           element={

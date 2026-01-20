@@ -22,8 +22,18 @@ export default function MatchSummaryPage() {
 
   const { data: summary, isLoading, error } = useQuery({
     queryKey: ['match-summary', matchId],
-    queryFn: () => matchesApi.getSummary(matchId!),
-    enabled: !!matchId
+    queryFn: async () => {
+      const result = await matchesApi.getSummary(matchId!)
+      console.log('Match summary response:', result)
+      console.log('homeTeam:', result?.homeTeam)
+      console.log('awayTeam:', result?.awayTeam)
+      if (!result) {
+        throw new Error('No summary data returned from API')
+      }
+      return result
+    },
+    enabled: !!matchId,
+    retry: false
   })
 
   if (isLoading) {
@@ -37,11 +47,23 @@ export default function MatchSummaryPage() {
   }
 
   if (error || !summary) {
+    console.error('Match summary error:', error)
     return (
       <div className="min-h-screen pb-20">
         <Header name={user?.name} />
-        <div className="text-center py-8 text-red-400">
-          Error al cargar el partido
+        <div className="text-center py-8 px-4">
+          <div className="text-red-400 mb-4">
+            Error al cargar el partido
+          </div>
+          <div className="text-sm text-gray-400 mb-4">
+            {error instanceof Error ? error.message : 'El partido no tiene datos de resumen disponibles'}
+          </div>
+          <div className="text-xs text-gray-500 mb-4">
+            Match ID: {matchId}
+          </div>
+          <Button onClick={() => navigate('/home')} variant="secondary">
+            Volver al inicio
+          </Button>
         </div>
         <BottomNav />
       </div>
@@ -121,13 +143,22 @@ export default function MatchSummaryPage() {
                 </Badge>
               )}
               <Button
-                onClick={() => setInviteModal({
-                  teamId: summary.homeTeam!.teamId,
-                  teamName: summary.homeTeam!.teamName,
-                  side: 'HOME'
-                })}
+                onClick={() => {
+                  console.log('HOME button clicked')
+                  console.log('homeTeamId:', summary.homeTeam?.id)
+                  if (summary.homeTeam?.id) {
+                    setInviteModal({
+                      teamId: summary.homeTeam.id,
+                      teamName: summary.homeTeam.teamName,
+                      side: 'HOME'
+                    })
+                  } else {
+                    console.error('No homeTeamId available')
+                  }
+                }}
                 variant="primary"
                 className="w-full mt-2"
+                disabled={!summary.homeTeam?.id}
               >
                 + Agregar jugador
               </Button>
@@ -166,13 +197,22 @@ export default function MatchSummaryPage() {
                 </Badge>
               )}
               <Button
-                onClick={() => setInviteModal({
-                  teamId: summary.awayTeam!.teamId,
-                  teamName: summary.awayTeam!.teamName,
-                  side: 'AWAY'
-                })}
+                onClick={() => {
+                  console.log('AWAY button clicked')
+                  console.log('awayTeamId:', summary.awayTeam?.id)
+                  if (summary.awayTeam?.id) {
+                    setInviteModal({
+                      teamId: summary.awayTeam.id,
+                      teamName: summary.awayTeam.teamName,
+                      side: 'AWAY'
+                    })
+                  } else {
+                    console.error('No awayTeamId available')
+                  }
+                }}
                 variant="primary"
                 className="w-full mt-2"
+                disabled={!summary.awayTeam?.id}
               >
                 + Agregar jugador
               </Button>

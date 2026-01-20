@@ -101,18 +101,13 @@ export const invitesApi = {
     matchId: string,
     payload: {
       teamId: string
-      invitees: Array<{
-        email?: string
-        phone?: string
-        userId?: string
-      }>
+      inviteeUserId?: string
+      inviteeEmail?: string
+      inviteePhone?: string
+      message?: string
     }
   ): Promise<void> => {
-    // Send invite through team endpoint
-    await apiClient.post(`/teams/${payload.teamId}/invites`, {
-      matchId,
-      invitees: payload.invitees
-    })
+    await apiClient.post(`/invites/matches/${matchId}`, payload)
   },
 
   accept: async (token: string): Promise<{ matchId: string }> => {

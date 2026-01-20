@@ -36,9 +36,12 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token expired or invalid
-      localStorage.removeItem('ryvex-auth')
-      window.location.href = '/login'
+      // Token expired or invalid - but don't redirect if it's a logout call
+      const isLogoutCall = error.config?.url?.includes('/logout')
+      if (!isLogoutCall) {
+        localStorage.removeItem('ryvex-auth')
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(error)
   }
