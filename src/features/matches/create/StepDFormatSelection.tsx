@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import Card from '../../../components/Card'
 import Button from '../../../components/Button'
 import Badge from '../../../components/Badge'
@@ -48,6 +48,7 @@ const formats: FormatOption[] = [
 
 export default function StepDFormatSelection() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { selectedSport, homeTeam, awayTeam, setFormat, resetDraft } = useMatchDraftStore()
   const [selectedFormatLocal, setSelectedFormatLocal] = useState<FormatOption | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -59,7 +60,8 @@ export default function StepDFormatSelection() {
         throw new Error('Faltan datos necesarios')
       }
 
-      return await matchesApi.create({
+      // Step 1: Create the match
+      const match = await matchesApi.create({
         sportId: selectedSport.id,
         matchType: 'FRIENDLY',
         homeTeamId: homeTeam.id,
@@ -69,9 +71,27 @@ export default function StepDFormatSelection() {
         scheduledAt: null,
         durationMin: null
       })
+
+      // Step 2: Assign home team to match
+      await matchesApi.assignTeam(match.id, {
+        teamId: homeTeam.id,
+        side: 'HOME'
+      })
+
+      // Step 3: Assign away team to match
+      await matchesApi.assignTeam(match.id, {
+        teamId: awayTeam.id,
+        side: 'AWAY'
+      })
+
+      return match
     },
     onSuccess: (match, format) => {
       setFormat(format.code)
+      
+      // Invalidate matches query to refresh the list in HomePage
+      queryClient.invalidateQueries({ queryKey: ['matches', 'my'] })
+      
       setShowSuccessModal(true)
     },
     onError: (err: any) => {

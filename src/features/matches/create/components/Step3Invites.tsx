@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import Button from '../../../../components/Button'
 import Badge from '../../../../components/Badge'
 import UserSearchInput from './UserSearchInput'
@@ -24,6 +24,7 @@ export default function Step3Invites() {
   const navigate = useNavigate()
   const { matchId } = useParams<{ matchId: string }>()
   const { selectedSport, homeTeam, awayTeam, format } = useMatchDraftStore()
+  const queryClient = useQueryClient()
 
   const [activeTab, setActiveTab] = useState<TeamTab>('home')
   const [homeInvites, setHomeInvites] = useState<PendingInvite[]>([])
@@ -166,6 +167,13 @@ export default function Step3Invites() {
 
     setSuccessCount(success)
     setFailedInvites(failed)
+
+    // Refresh notifications if any invites succeeded
+    // Backend auto-creates notifications for registered users
+    if (success > 0) {
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] })
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'list'] })
+    }
 
     if (failed.length === 0) {
       // All succeeded

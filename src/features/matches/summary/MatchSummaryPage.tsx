@@ -117,7 +117,7 @@ export default function MatchSummaryPage() {
           <Card>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold">{summary.homeTeam.teamName}</h3>
+                <h3 className="font-semibold">{summary.homeTeam.name}</h3>
                 <Badge variant="info">LOCAL</Badge>
               </div>
               <div className="grid grid-cols-3 gap-2 text-sm">
@@ -131,7 +131,7 @@ export default function MatchSummaryPage() {
                 </div>
                 <div>
                   <div className="text-muted">Mínimo</div>
-                  <div className="font-semibold">{summary.homeTeam.minRequired}</div>
+                  <div className="font-semibold">{summary.format.onFieldPlayers}</div>
                 </div>
               </div>
               {homeReady ? (
@@ -149,7 +149,7 @@ export default function MatchSummaryPage() {
                   if (summary.homeTeam?.id) {
                     setInviteModal({
                       teamId: summary.homeTeam.id,
-                      teamName: summary.homeTeam.teamName,
+                      teamName: summary.homeTeam.name,
                       side: 'HOME'
                     })
                   } else {
@@ -171,7 +171,7 @@ export default function MatchSummaryPage() {
           <Card>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold">{summary.awayTeam.teamName}</h3>
+                <h3 className="font-semibold">{summary.awayTeam.name}</h3>
                 <Badge variant="warning">VISITANTE</Badge>
               </div>
               <div className="grid grid-cols-3 gap-2 text-sm">
@@ -185,7 +185,7 @@ export default function MatchSummaryPage() {
                 </div>
                 <div>
                   <div className="text-muted">Mínimo</div>
-                  <div className="font-semibold">{summary.awayTeam.minRequired}</div>
+                  <div className="font-semibold">{summary.format.onFieldPlayers}</div>
                 </div>
               </div>
               {awayReady ? (
@@ -203,7 +203,7 @@ export default function MatchSummaryPage() {
                   if (summary.awayTeam?.id) {
                     setInviteModal({
                       teamId: summary.awayTeam.id,
-                      teamName: summary.awayTeam.teamName,
+                      teamName: summary.awayTeam.name,
                       side: 'AWAY'
                     })
                   } else {

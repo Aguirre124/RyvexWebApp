@@ -113,6 +113,10 @@ export const invitesApi = {
   accept: async (token: string): Promise<{ matchId: string }> => {
     const { data } = await apiClient.post(`/invites/${token}/accept`)
     return data
+  },
+
+  decline: async (token: string): Promise<void> => {
+    await apiClient.post(`/invites/${token}/decline`)
   }
 }
 
