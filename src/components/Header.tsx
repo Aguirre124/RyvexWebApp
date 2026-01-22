@@ -30,19 +30,39 @@ export default function Header({ name }: { name?: string }) {
   return (
     <>
       <header className="flex items-center justify-between py-4 px-4">
-        <div>
-          <div className="text-sm text-muted">Hola,</div>
-          <div className="font-bold text-lg">{name ?? 'Usuario'}</div>
+        <div className="flex items-center gap-3">
+          {/* Profile Icon */}
+          <div className="w-9 h-9 rounded-full bg-[#222] flex items-center justify-center hover:bg-primary transition cursor-pointer group">
+            <svg 
+              className="w-5 h-5 text-white group-hover:text-black transition" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" 
+              />
+            </svg>
+          </div>
+          
+          <div>
+            <div className="text-sm text-muted">Hola,</div>
+            <div className="font-bold text-lg">{name ?? 'Usuario'}</div>
+          </div>
         </div>
+        
         <div className="flex items-center gap-3">
           {/* Notifications Bell */}
           <button 
             onClick={togglePanel}
-            className="relative w-9 h-9 rounded-full bg-[#071224] flex items-center justify-center hover:bg-[#0a1628] transition"
+            className="relative w-9 h-9 rounded-full bg-[#222] flex items-center justify-center hover:bg-primary transition group"
             title="Notificaciones"
           >
             <svg 
-              className="w-5 h-5 text-white" 
+              className="w-5 h-5 text-white group-hover:text-black transition" 
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
@@ -63,7 +83,6 @@ export default function Header({ name }: { name?: string }) {
             )}
           </button>
 
-          <div className="w-9 h-9 rounded-full bg-[#0b1220] flex items-center justify-center">👤</div>
           <button 
             className="w-9 h-9 rounded-full bg-[#222] flex items-center justify-center hover:bg-primary transition group" 
             onClick={handleLogout}
