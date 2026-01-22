@@ -105,16 +105,22 @@ export default function NotificationCard({ notification, onClick }: Notification
         console.warn('Failed to mark as read:', err)
       }
       
+      // Get matchId for invalidation
+      const matchId = response?.matchId ?? notification.data?.matchId
+      
       // Refresh queries
       queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] })
       queryClient.invalidateQueries({ queryKey: ['notifications', 'list'] })
-      queryClient.invalidateQueries({ queryKey: ['match-summary'] })
+      if (matchId) {
+        queryClient.invalidateQueries({ queryKey: ['matchSummary', matchId] })
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['matchSummary'] })
+      }
       
       // Show success message
       setSuccess('✓ Invitación aceptada')
       
       // Navigate to match if matchId exists
-      const matchId = response?.matchId ?? notification.data?.matchId
       if (matchId) {
         setTimeout(() => {
           navigate(`/matches/${matchId}/summary`)
@@ -161,9 +167,17 @@ export default function NotificationCard({ notification, onClick }: Notification
         console.warn('Failed to mark as read:', err)
       }
       
+      // Get matchId for invalidation
+      const matchId = notification.data?.matchId
+      
       // Refresh queries
       queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] })
       queryClient.invalidateQueries({ queryKey: ['notifications', 'list'] })
+      if (matchId) {
+        queryClient.invalidateQueries({ queryKey: ['matchSummary', matchId] })
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['matchSummary'] })
+      }
       
       // Show success message
       setSuccess('Invitación rechazada')

@@ -88,7 +88,10 @@ export default function InvitePlayerModal({
     onSuccess: () => {
       setSuccess(true)
       setError(null)
-      queryClient.invalidateQueries({ queryKey: ['match-summary', matchId] })
+      setPendingInvites([]) // Clear the pending invites list
+      
+      // Refresh match summary to update counts
+      queryClient.invalidateQueries({ queryKey: ['matchSummary', matchId] })
       
       // Refresh notifications for invited users
       // Backend auto-creates notifications for registered users

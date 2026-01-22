@@ -56,19 +56,49 @@ export type Match = {
 }
 
 export type TeamRoster = {
+  id?: string
   teamId: string
   teamName: string
+  name?: string
   side: TeamSide
   invitedCount: number
   acceptedCount: number
   minRequired: number
   maxAllowed: number
+  _count?: {
+    invites?: number
+    rosters?: number
+  }
+}
+
+export type MatchTeamSummary = {
+  id: string
+  matchId: string
+  teamId: string
+  side: 'HOME' | 'AWAY'
+  onFieldPlayers: number
+  substitutesAllowed: number
+  maxSquadSize: number
+  team: {
+    id: string
+    name: string
+    logoUrl?: string | null
+  }
+  _count?: {
+    invites?: number
+    rosters?: number
+  }
 }
 
 export type MatchSummary = {
-  match: Match
-  format: FormatDetails
-  homeTeam: TeamRoster | null
-  awayTeam: TeamRoster | null
+  id: string
+  formatId: string
+  status: MatchStatus
+  matchTeams: MatchTeamSummary[]
+  // Legacy fields for backward compatibility
+  match?: Match
+  format?: FormatDetails
+  homeTeam?: TeamRoster | null
+  awayTeam?: TeamRoster | null
   challenge?: Challenge
 }
