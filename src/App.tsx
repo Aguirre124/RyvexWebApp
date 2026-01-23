@@ -15,6 +15,7 @@ import StepCAwayTeamSelection from './features/matches/create/StepCAwayTeamSelec
 import StepDFormatSelection from './features/matches/create/StepDFormatSelection'
 import Step3Invites from './features/matches/create/components/Step3Invites'
 import TeamCreatePage from './features/teams/TeamCreatePage'
+import VenueSelectPage from './features/venues/pages/VenueSelectPage'
 import { useAuthStore } from './features/auth/auth.store'
 
 const queryClient = new QueryClient({
@@ -91,6 +92,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <MatchSummaryPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/matches/:matchId/venues"
+          element={
+            <ProtectedRoute>
+              <VenueSelectPage />
             </ProtectedRoute>
           }
         />

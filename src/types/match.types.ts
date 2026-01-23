@@ -103,6 +103,13 @@ export type MatchSummary = {
   formatId: string
   status: MatchStatus
   matchTeams: MatchTeamSummary[]
+  venueId?: string | null
+  venue?: {
+    id: string
+    name: string
+    city?: string | null
+    address?: string | null
+  }
   // Legacy fields for backward compatibility
   match?: Match
   format?: FormatDetails & { code?: string }

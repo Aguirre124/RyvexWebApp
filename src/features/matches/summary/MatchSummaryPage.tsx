@@ -5,6 +5,7 @@ import Card from '../../../components/Card'
 import Badge from '../../../components/Badge'
 import Header from '../../../components/Header'
 import BottomNav from '../../../components/BottomNav'
+import Tabs from '../../../components/Tabs'
 import InvitePlayerModal from '../invites/InvitePlayerModal'
 import { useAuthStore } from '../../auth/auth.store'
 import { useMatchSummary } from '../hooks/useMatchSummary'
@@ -134,138 +135,190 @@ export default function MatchSummaryPage() {
           )}
         </div>
 
-        {/* Format with Field View */}
-        {(summary.format || homeTeam) && (
-          <Card>
-            <div className="text-sm text-muted mb-4 text-center">
-              Jugadores en campo: <span className="font-semibold text-white">{homeTeam?.onFieldPlayers ?? summary.format?.onFieldPlayers ?? minRequired}</span>
-              {' • '}
-              Suplentes: <span className="font-semibold text-white">{homeTeam?.substitutesAllowed ?? summary.format?.substitutesAllowed ?? 0}</span>
-            </div>
+        <Tabs
+          tabs={[
+            {
+              id: 'encuentro',
+              label: 'Encuentro',
+              content: (
+                <div className="space-y-4">
+                  {/* Format with Field View */}
+                  {(summary.format || homeTeam) && (
+                    <Card>
+                      <div className="text-sm text-muted mb-4 text-center">
+                        Jugadores en campo: <span className="font-semibold text-white">{homeTeam?.onFieldPlayers ?? summary.format?.onFieldPlayers ?? minRequired}</span>
+                        {' • '}
+                        Suplentes: <span className="font-semibold text-white">{homeTeam?.substitutesAllowed ?? summary.format?.substitutesAllowed ?? 0}</span>
+                      </div>
 
-            {/* Single field showing both teams */}
-            <div className="mt-4">
-              <FieldMatch
-                layout={fieldLayout}
-                homeStarters={homeLineup.starters}
-                awayStarters={awayLineup.starters}
-                homeTeamName={homeTeam?.team?.name || 'Local'}
-                awayTeamName={awayTeam?.team?.name || 'Visitante'}
-                homeBench={homeLineup.bench}
-                awayBench={awayLineup.bench}
-                maxSubstitutes={homeTeam?.substitutesAllowed ?? summary.format?.substitutesAllowed ?? 5}
-              />
-            </div>
-          </Card>
-        )}
+                      {/* Single field showing both teams */}
+                      <div className="mt-4">
+                        <FieldMatch
+                          layout={fieldLayout}
+                          homeStarters={homeLineup.starters}
+                          awayStarters={awayLineup.starters}
+                          homeTeamName={homeTeam?.team?.name || 'Local'}
+                          awayTeamName={awayTeam?.team?.name || 'Visitante'}
+                          homeBench={homeLineup.bench}
+                          awayBench={awayLineup.bench}
+                          maxSubstitutes={homeTeam?.substitutesAllowed ?? summary.format?.substitutesAllowed ?? 5}
+                        />
+                      </div>
+                    </Card>
+                  )}
 
-        {/* HOME Team */}
-        {homeTeam && (
-          <Card>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold">{homeTeam.team.name}</h3>
-                <Badge variant="info">LOCAL</Badge>
-              </div>
-              <div className="grid grid-cols-3 gap-2 text-sm">
-                <div>
-                  <div className="text-muted">Invitados</div>
-                  <div className="font-semibold">{homeInvited}</div>
-                </div>
-                <div>
-                  <div className="text-muted">Aceptados</div>
-                  <div className="font-semibold">{homeAccepted}</div>
-                </div>
-                <div>
-                  <div className="text-muted">Mínimo</div>
-                  <div className="font-semibold">{minRequired}</div>
-                </div>
-              </div>
-              {homeReady ? (
-                <Badge variant="success">✓ Listo</Badge>
-              ) : (
-                <Badge variant="warning">
-                  Faltan {minRequired - homeAccepted} jugadores
-                </Badge>
-              )}
-              <Button
-                onClick={() => {
-                  setInviteModal({
-                    teamId: homeTeam.teamId,
-                    teamName: homeTeam.team.name,
-                    side: 'HOME'
-                  })
-                }}
-                variant="primary"
-                className="w-full mt-2"
-              >
-                + Agregar jugador
-              </Button>
-            </div>
-          </Card>
-        )}
+                  {/* Venue Information */}
+                  {summary.venue ? (
+                    <Card>
+                      <h3 className="font-semibold mb-2">Cancha seleccionada</h3>
+                      <div className="space-y-2">
+                        <div className="font-semibold text-primary">{summary.venue.name}</div>
+                        {summary.venue.city && (
+                          <div className="text-sm text-muted">{summary.venue.city}</div>
+                        )}
+                        {summary.venue.address && (
+                          <div className="text-sm text-muted">{summary.venue.address}</div>
+                        )}
+                        <Button
+                          onClick={() => navigate(`/matches/${matchId}/venues`)}
+                          variant="secondary"
+                          className="w-full mt-2"
+                        >
+                          Cambiar cancha
+                        </Button>
+                      </div>
+                    </Card>
+                  ) : (
+                    <Card>
+                      <Button
+                        onClick={() => navigate(`/matches/${matchId}/venues`)}
+                        variant="primary"
+                        className="w-full"
+                      >
+                        + Seleccionar cancha
+                      </Button>
+                    </Card>
+                  )}
 
-        {/* AWAY Team */}
-        {awayTeam && (
-          <Card>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold">{awayTeam.team.name}</h3>
-                <Badge variant="warning">VISITANTE</Badge>
-              </div>
-              <div className="grid grid-cols-3 gap-2 text-sm">
-                <div>
-                  <div className="text-muted">Invitados</div>
-                  <div className="font-semibold">{awayInvited}</div>
+                  {/* Challenge */}
+                  {summary.challenge && (
+                    <Card>
+                      <h3 className="font-semibold mb-2">Desafío</h3>
+                      {summary.challenge.status === 'PENDING' && (
+                        <Badge variant="warning">Pendiente de aceptación</Badge>
+                      )}
+                      {summary.challenge.status === 'ACCEPTED' && (
+                        <Badge variant="success">✓ Aceptado</Badge>
+                      )}
+                      {summary.challenge.status === 'DECLINED' && (
+                        <Badge variant="error">Rechazado</Badge>
+                      )}
+                    </Card>
+                  )}
                 </div>
-                <div>
-                  <div className="text-muted">Aceptados</div>
-                  <div className="font-semibold">{awayAccepted}</div>
-                </div>
-                <div>
-                  <div className="text-muted">Mínimo</div>
-                  <div className="font-semibold">{minRequired}</div>
-                </div>
-              </div>
-              {awayReady ? (
-                <Badge variant="success">✓ Listo</Badge>
-              ) : (
-                <Badge variant="warning">
-                  Faltan {minRequired - awayAccepted} jugadores
-                </Badge>
-              )}
-              <Button
-                onClick={() => {
-                  setInviteModal({
-                    teamId: awayTeam.teamId,
-                    teamName: awayTeam.team.name,
-                    side: 'AWAY'
-                  })
-                }}
-                variant="primary"
-                className="w-full mt-2"
-              >
-                + Agregar jugador
-              </Button>
-            </div>
-          </Card>
-        )}
+              )
+            },
+            {
+              id: 'jugadores',
+              label: 'Jugadores',
+              content: (
+                <div className="space-y-4">
+                  {/* HOME Team */}
+                  {homeTeam && (
+                    <Card>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold">{homeTeam.team.name}</h3>
+                          <Badge variant="info">LOCAL</Badge>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 text-sm">
+                          <div>
+                            <div className="text-muted">Invitados</div>
+                            <div className="font-semibold">{homeInvited}</div>
+                          </div>
+                          <div>
+                            <div className="text-muted">Aceptados</div>
+                            <div className="font-semibold">{homeAccepted}</div>
+                          </div>
+                          <div>
+                            <div className="text-muted">Mínimo</div>
+                            <div className="font-semibold">{minRequired}</div>
+                          </div>
+                        </div>
+                        {homeReady ? (
+                          <Badge variant="success">✓ Listo</Badge>
+                        ) : (
+                          <Badge variant="warning">
+                            Faltan {minRequired - homeAccepted} jugadores
+                          </Badge>
+                        )}
+                        <Button
+                          onClick={() => {
+                            setInviteModal({
+                              teamId: homeTeam.teamId,
+                              teamName: homeTeam.team.name,
+                              side: 'HOME'
+                            })
+                          }}
+                          variant="primary"
+                          className="w-full mt-2"
+                        >
+                          + Agregar jugador
+                        </Button>
+                      </div>
+                    </Card>
+                  )}
 
-        {/* Challenge */}
-        {summary.challenge && (
-          <Card>
-            <h3 className="font-semibold mb-2">Desafío</h3>
-            {summary.challenge.status === 'PENDING' && (
-              <Badge variant="warning">Pendiente de aceptación</Badge>
-            )}
-            {summary.challenge.status === 'ACCEPTED' && (
-              <Badge variant="success">✓ Aceptado</Badge>
-            )}
-            {summary.challenge.status === 'DECLINED' && (
-              <Badge variant="error">Rechazado</Badge>
-            )}
-          </Card>
-        )}
+                  {/* AWAY Team */}
+                  {awayTeam && (
+                    <Card>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold">{awayTeam.team.name}</h3>
+                          <Badge variant="warning">VISITANTE</Badge>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 text-sm">
+                          <div>
+                            <div className="text-muted">Invitados</div>
+                            <div className="font-semibold">{awayInvited}</div>
+                          </div>
+                          <div>
+                            <div className="text-muted">Aceptados</div>
+                            <div className="font-semibold">{awayAccepted}</div>
+                          </div>
+                          <div>
+                            <div className="text-muted">Mínimo</div>
+                            <div className="font-semibold">{minRequired}</div>
+                          </div>
+                        </div>
+                        {awayReady ? (
+                          <Badge variant="success">✓ Listo</Badge>
+                        ) : (
+                          <Badge variant="warning">
+                            Faltan {minRequired - awayAccepted} jugadores
+                          </Badge>
+                        )}
+                        <Button
+                          onClick={() => {
+                            setInviteModal({
+                              teamId: awayTeam.teamId,
+                              teamName: awayTeam.team.name,
+                              side: 'AWAY'
+                            })
+                          }}
+                          variant="primary"
+                          className="w-full mt-2"
+                        >
+                          + Agregar jugador
+                        </Button>
+                      </div>
+                    </Card>
+                  )}
+                </div>
+              )
+            }
+          ]}
+        />
 
         <Button onClick={() => navigate('/home')} variant="secondary">
           Volver al inicio

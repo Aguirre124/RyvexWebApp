@@ -85,7 +85,7 @@ export default function HomePage() {
                     <div className="text-xs text-gray-400">
                       {match.type === 'FRIENDLY' ? 'Amistoso' : 'Torneo'}
                       {match.status && (
-                        <span className="ml-2 text-primary">• {match.status}</span>
+                        <span className="ml-2 text-primary">• {match.status === 'DRAFT' ? 'BORRADOR' : match.status}</span>
                       )}
                     </div>
                   </div>

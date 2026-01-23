@@ -77,6 +77,10 @@ export const matchesApi = {
     payload: { teamId: string; side: 'HOME' | 'AWAY' }
   ): Promise<void> => {
     await apiClient.post(`/matches/${matchId}/teams`, payload)
+  },
+
+  updateVenue: async (matchId: string, venueId: string): Promise<void> => {
+    await apiClient.patch(`/matches/${matchId}`, { venueId })
   }
 }
 
