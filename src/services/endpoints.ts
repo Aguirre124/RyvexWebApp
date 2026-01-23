@@ -63,7 +63,12 @@ export const matchesApi = {
   },
 
   getSummary: async (matchId: string): Promise<MatchSummary> => {
-    const { data } = await apiClient.get(`/matches/${matchId}/summary`)
+    const { data } = await apiClient.get(`/matches/${matchId}/summary`, {
+      params: {
+        includeRosters: true,
+        includeUsers: true
+      }
+    })
     return data
   },
 

@@ -1,6 +1,6 @@
 import React from 'react'
 import type { FieldLayout } from '../layouts/soccerLayouts'
-import type { SlotAssignment } from '../utils/autoAssignLineup'
+import type { SlotAssignment, AcceptedPlayer } from '../utils/autoAssignLineup'
 
 type FieldMatchProps = {
   layout: FieldLayout
@@ -8,9 +8,12 @@ type FieldMatchProps = {
   awayStarters: SlotAssignment[]
   homeTeamName: string
   awayTeamName: string
+  homeBench: AcceptedPlayer[]
+  awayBench: AcceptedPlayer[]
+  maxSubstitutes: number
 }
 
-export default function FieldMatch({ layout, homeStarters, awayStarters, homeTeamName, awayTeamName }: FieldMatchProps) {
+export default function FieldMatch({ layout, homeStarters, awayStarters, homeTeamName, awayTeamName, homeBench, awayBench, maxSubstitutes }: FieldMatchProps) {
   
   const getPlayerInitials = (name: string): string => {
     const parts = name.trim().split(/\s+/)
@@ -201,6 +204,75 @@ export default function FieldMatch({ layout, homeStarters, awayStarters, homeTea
           </div>
           <div className="absolute top-2 right-4 text-[10px] font-bold text-white bg-red-600/80 px-2 py-1 rounded">
             {awayTeamName}
+          </div>
+        </div>
+      </div>
+
+      {/* Bench/Substitutes section - always show */}
+      <div className="bg-[#0b1220]/80 border-t border-green-700/30 p-3">
+        <div className="grid grid-cols-2 gap-4">
+          {/* HOME Bench */}
+          <div>
+            <div className="text-[10px] text-blue-400 font-semibold mb-2 uppercase">Suplentes {homeTeamName}</div>
+            <div className="flex flex-wrap gap-2">
+              {Array.from({ length: maxSubstitutes }).map((_, idx) => {
+                const player = homeBench[idx];
+                return (
+                  <div key={`home-bench-${idx}`} className="flex flex-col items-center gap-1">
+                    {player ? (
+                      // Filled bench slot
+                      <>
+                        <div className="w-[33px] h-[33px] rounded-full bg-blue-500 border-2 border-white flex items-center justify-center shadow-lg">
+                          <span className="text-white font-bold text-xs">
+                            {getPlayerInitials(player.name)}
+                          </span>
+                        </div>
+                        <div className="text-[8px] text-white font-medium bg-black/60 px-1 py-0.5 rounded whitespace-nowrap max-w-[50px] truncate">
+                          {player.name.split(' ')[0]}
+                        </div>
+                      </>
+                    ) : (
+                      // Empty bench slot
+                      <div className="w-[33px] h-[33px] rounded-full bg-blue-500/30 border-2 border-dashed border-blue-400 flex items-center justify-center">
+                        <span className="text-blue-300 font-semibold text-[10px]">SUP</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* AWAY Bench */}
+          <div>
+            <div className="text-[10px] text-red-400 font-semibold mb-2 uppercase">Suplentes {awayTeamName}</div>
+            <div className="flex flex-wrap gap-2">
+              {Array.from({ length: maxSubstitutes }).map((_, idx) => {
+                const player = awayBench[idx];
+                return (
+                  <div key={`away-bench-${idx}`} className="flex flex-col items-center gap-1">
+                    {player ? (
+                      // Filled bench slot
+                      <>
+                        <div className="w-[33px] h-[33px] rounded-full bg-red-500 border-2 border-white flex items-center justify-center shadow-lg">
+                          <span className="text-white font-bold text-xs">
+                            {getPlayerInitials(player.name)}
+                          </span>
+                        </div>
+                        <div className="text-[8px] text-white font-medium bg-black/60 px-1 py-0.5 rounded whitespace-nowrap max-w-[50px] truncate">
+                          {player.name.split(' ')[0]}
+                        </div>
+                      </>
+                    ) : (
+                      // Empty bench slot
+                      <div className="w-[33px] h-[33px] rounded-full bg-red-500/30 border-2 border-dashed border-red-400 flex items-center justify-center">
+                        <span className="text-red-300 font-semibold text-[10px]">SUP</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>

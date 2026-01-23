@@ -28,6 +28,7 @@ function normalizeRole(role: any): RoleCode {
 
 /**
  * MVP auto-assign:
+ * - Players with SUB role go directly to bench
  * - Fill each field slot with a compatible accepted player based on suggestedRoleCode.
  * - If none compatible, use a player with no role ("").
  * - Remaining accepted players go to bench (up to substitutesAllowed if you want to cap in UI).
@@ -38,9 +39,22 @@ export function autoAssignLineup(
 ): AutoAssignResult {
   const remaining = [...acceptedPlayers];
 
-  // bucket by role
-  const buckets: Record<RoleCode, AcceptedPlayer[]> = { "": [], GK: [], DEF: [], MID: [], ATT: [] };
+  // Separate SUB players first - they go directly to bench
+  const subPlayers: AcceptedPlayer[] = [];
+  const fieldPlayers: AcceptedPlayer[] = [];
+  
   for (const p of remaining) {
+    const roleStr = (p.suggestedRoleCode ?? "").toString().trim().toUpperCase();
+    if (roleStr === "SUB") {
+      subPlayers.push(p);
+    } else {
+      fieldPlayers.push(p);
+    }
+  }
+
+  // bucket field players by role
+  const buckets: Record<RoleCode, AcceptedPlayer[]> = { "": [], GK: [], DEF: [], MID: [], ATT: [] };
+  for (const p of fieldPlayers) {
     const r = normalizeRole(p.suggestedRoleCode);
     buckets[r].push({ ...p, suggestedRoleCode: r });
   }
@@ -61,8 +75,9 @@ export function autoAssignLineup(
     player: pickForSlot(slot),
   }));
 
-  // collect leftover players from all buckets (bench)
+  // collect leftover players from all buckets + SUB players (bench)
   const bench: AcceptedPlayer[] = [
+    ...subPlayers, // SUB players go first
     ...buckets.GK,
     ...buckets.DEF,
     ...buckets.MID,

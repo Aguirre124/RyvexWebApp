@@ -94,14 +94,16 @@ export default function MatchSummaryPage() {
     userId: r.userId,
     name: r.user?.name ?? 'Jugador',
     avatarUrl: r.user?.avatarUrl,
-    suggestedRoleCode: r.suggestedRoleCode
+    // Try different possible field names for role
+    suggestedRoleCode: r.suggestedRoleCode ?? (r as any).roleCode ?? (r as any).role ?? (r as any).position
   })) ?? []
 
   const awayAcceptedPlayers = awayTeam?.rosters?.map(r => ({
     userId: r.userId,
     name: r.user?.name ?? 'Jugador',
     avatarUrl: r.user?.avatarUrl,
-    suggestedRoleCode: r.suggestedRoleCode
+    // Try different possible field names for role
+    suggestedRoleCode: r.suggestedRoleCode ?? (r as any).roleCode ?? (r as any).role ?? (r as any).position
   })) ?? []
 
   // Auto-assign players to field positions
@@ -135,30 +137,25 @@ export default function MatchSummaryPage() {
         {/* Format with Field View */}
         {(summary.format || homeTeam) && (
           <Card>
-            <h3 className="font-semibold mb-3">Formato: {summary.format?.name || 'Partido'}</h3>
-            <div className="grid grid-cols-2 gap-3 text-sm mb-4">
-              <div>
-                <div className="text-muted">Jugadores en campo</div>
-                <div className="font-semibold">{homeTeam?.onFieldPlayers ?? summary.format?.onFieldPlayers ?? minRequired}</div>
-              </div>
-              <div>
-                <div className="text-muted">Suplentes</div>
-                <div className="font-semibold">{homeTeam?.substitutesAllowed ?? summary.format?.substitutesAllowed ?? 0}</div>
-              </div>
+            <div className="text-sm text-muted mb-4 text-center">
+              Jugadores en campo: <span className="font-semibold text-white">{homeTeam?.onFieldPlayers ?? summary.format?.onFieldPlayers ?? minRequired}</span>
+              {' • '}
+              Suplentes: <span className="font-semibold text-white">{homeTeam?.substitutesAllowed ?? summary.format?.substitutesAllowed ?? 0}</span>
             </div>
 
             {/* Single field showing both teams */}
-            {(homeAccepted > 0 || awayAccepted > 0) && (
-              <div className="mt-4">
-                <FieldMatch
-                  layout={fieldLayout}
-                  homeStarters={homeLineup.starters}
-                  awayStarters={awayLineup.starters}
-                  homeTeamName={homeTeam?.team?.name || 'Local'}
-                  awayTeamName={awayTeam?.team?.name || 'Visitante'}
-                />
-              </div>
-            )}
+            <div className="mt-4">
+              <FieldMatch
+                layout={fieldLayout}
+                homeStarters={homeLineup.starters}
+                awayStarters={awayLineup.starters}
+                homeTeamName={homeTeam?.team?.name || 'Local'}
+                awayTeamName={awayTeam?.team?.name || 'Visitante'}
+                homeBench={homeLineup.bench}
+                awayBench={awayLineup.bench}
+                maxSubstitutes={homeTeam?.substitutesAllowed ?? summary.format?.substitutesAllowed ?? 5}
+              />
+            </div>
           </Card>
         )}
 
