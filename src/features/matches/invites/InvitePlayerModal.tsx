@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import Button from '../../../components/Button'
 import Input from '../../../components/Input'
+import RoleSelect from '../../../components/RoleSelect'
 import { invitesApi } from '../../../services/endpoints'
 import { usersApi, UserSearchResult } from '../../../services/users.api'
 import { useDebounce } from '../../../hooks/useDebounce'
@@ -18,8 +19,19 @@ type InvitePlayerModalProps = {
 }
 
 type PendingInvite =
-  | { kind: 'user'; userId: string; name: string; email?: string | null; phoneNumber?: string | null }
-  | { kind: 'email'; email: string }
+  | { 
+      kind: 'user'
+      userId: string
+      name: string
+      email?: string | null
+      phoneNumber?: string | null
+      suggestedRoleCode: string
+    }
+  | { 
+      kind: 'email'
+      email: string
+      suggestedRoleCode: string
+    }
 
 const emailSchema = z.object({
   email: z.string().email('Email inválido').min(1, 'Email es requerido')
@@ -39,6 +51,7 @@ export default function InvitePlayerModal({
   const [showEmailForm, setShowEmailForm] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [selectedRole, setSelectedRole] = useState('')
   const queryClient = useQueryClient()
   const debouncedQuery = useDebounce(query, 350)
 
@@ -62,17 +75,21 @@ export default function InvitePlayerModal({
       
       const results = await Promise.allSettled(
         invites.map((invite) => {
+          const basePayload = {
+            teamId,
+            message: defaultMessage,
+            suggestedRoleCode: invite.suggestedRoleCode
+          }
+          
           if (invite.kind === 'user') {
             return invitesApi.send(matchId, {
-              teamId,
-              inviteeUserId: invite.userId,
-              message: defaultMessage
+              ...basePayload,
+              inviteeUserId: invite.userId
             })
           } else {
             return invitesApi.send(matchId, {
-              teamId,
-              inviteeEmail: invite.email,
-              message: defaultMessage
+              ...basePayload,
+              inviteeEmail: invite.email
             })
           }
         })
@@ -133,10 +150,12 @@ export default function InvitePlayerModal({
       userId: user.id,
       name: user.name,
       email: user.email,
-      phoneNumber: user.phoneNumber
+      phoneNumber: user.phoneNumber,
+      suggestedRoleCode: selectedRole
     }])
     
     setQuery('')
+    setSelectedRole('') // Reset role after adding
     setError(null)
   }
 
@@ -156,16 +175,24 @@ export default function InvitePlayerModal({
 
     setPendingInvites([...pendingInvites, {
       kind: 'email',
-      email: data.email
+      email: data.email,
+      suggestedRoleCode: selectedRole
     }])
     
     reset()
     setShowEmailForm(false)
+    setSelectedRole('') // Reset role after adding
     setError(null)
   }
 
   const handleRemoveInvite = (index: number) => {
     setPendingInvites(pendingInvites.filter((_, i) => i !== index))
+  }
+
+  const handleUpdateRole = (index: number, roleCode: string) => {
+    setPendingInvites(pendingInvites.map((invite, i) => 
+      i === index ? { ...invite, suggestedRoleCode: roleCode } : invite
+    ))
   }
 
   const handleSend = () => {
@@ -237,6 +264,12 @@ export default function InvitePlayerModal({
                 )}
               </div>
 
+              {/* Role Selection */}
+              <RoleSelect
+                value={selectedRole}
+                onChange={setSelectedRole}
+              />
+
               {/* Search Results */}
               {searchResults.length > 0 && debouncedQuery.length >= 2 && (
                 <div className="border border-[#1f2937] rounded-lg overflow-hidden">
@@ -300,6 +333,13 @@ export default function InvitePlayerModal({
                             <div className="text-red-400 text-xs mt-1">{formErrors.email.message}</div>
                           )}
                         </div>
+                        
+                        {/* Role Selection for Email */}
+                        <RoleSelect
+                          value={selectedRole}
+                          onChange={setSelectedRole}
+                        />
+                        
                         <div className="flex gap-2">
                           <Button
                             type="button"
@@ -332,47 +372,60 @@ export default function InvitePlayerModal({
                   <div className="text-sm font-medium text-gray-400 mb-3">
                     Invitaciones pendientes ({pendingInvites.length})
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {pendingInvites.map((invite, index) => (
                       <div
                         key={index}
-                        className="flex items-center gap-3 p-3 bg-[#0b1220] border border-[#1f2937] rounded-lg"
+                        className="p-3 bg-[#0b1220] border border-[#1f2937] rounded-lg space-y-2"
                       >
-                        {invite.kind === 'user' ? (
-                          <>
-                            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                              <span className="text-primary font-bold text-xs">
-                                {invite.name.charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-white text-sm">{invite.name}</div>
-                              <div className="text-xs text-gray-400 truncate">
-                                {invite.email || invite.phoneNumber || 'Usuario registrado'}
+                        <div className="flex items-center gap-3">
+                          {invite.kind === 'user' ? (
+                            <>
+                              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                                <span className="text-primary font-bold text-xs">
+                                  {invite.name.charAt(0).toUpperCase()}
+                                </span>
                               </div>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
-                              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                              </svg>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-white text-sm truncate">{invite.email}</div>
-                              <div className="text-xs text-gray-400">Email</div>
-                            </div>
-                          </>
-                        )}
-                        <button
-                          onClick={() => handleRemoveInvite(index)}
-                          className="p-1 hover:bg-red-500/10 rounded transition-colors"
-                        >
-                          <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-white text-sm">{invite.name}</div>
+                                <div className="text-xs text-gray-400 truncate">
+                                  {invite.email || invite.phoneNumber || 'Usuario registrado'}
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center flex-shrink-0">
+                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-white text-sm truncate">{invite.email}</div>
+                                <div className="text-xs text-gray-400">Email</div>
+                              </div>
+                            </>
+                          )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleRemoveInvite(index)
+                            }}
+                            className="p-1 hover:bg-red-500/10 rounded transition-colors flex-shrink-0"
+                          >
+                            <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                        
+                        {/* Inline Role Editor */}
+                        <div className="pl-11">
+                          <RoleSelect
+                            value={invite.suggestedRoleCode}
+                            onChange={(roleCode) => handleUpdateRole(index, roleCode)}
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>

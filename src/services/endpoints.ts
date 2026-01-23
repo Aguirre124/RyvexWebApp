@@ -105,9 +105,15 @@ export const invitesApi = {
       inviteeEmail?: string
       inviteePhone?: string
       message?: string
+      suggestedRoleCode?: string
     }
   ): Promise<void> => {
-    await apiClient.post(`/invites/matches/${matchId}`, payload)
+    // Normalize suggestedRoleCode: empty string becomes undefined
+    const normalizedPayload = {
+      ...payload,
+      suggestedRoleCode: payload.suggestedRoleCode?.trim() || undefined
+    }
+    await apiClient.post(`/invites/matches/${matchId}`, normalizedPayload)
   },
 
   accept: async (token: string): Promise<{ matchId: string }> => {

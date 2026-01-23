@@ -88,6 +88,14 @@ export type MatchTeamSummary = {
     invites?: number
     rosters?: number
   }
+  rosters?: Array<{
+    userId: string
+    suggestedRoleCode?: string
+    user?: {
+      name: string
+      avatarUrl?: string | null
+    }
+  }>
 }
 
 export type MatchSummary = {
@@ -97,7 +105,7 @@ export type MatchSummary = {
   matchTeams: MatchTeamSummary[]
   // Legacy fields for backward compatibility
   match?: Match
-  format?: FormatDetails
+  format?: FormatDetails & { code?: string }
   homeTeam?: TeamRoster | null
   awayTeam?: TeamRoster | null
   challenge?: Challenge

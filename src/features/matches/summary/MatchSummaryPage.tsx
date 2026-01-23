@@ -9,6 +9,9 @@ import InvitePlayerModal from '../invites/InvitePlayerModal'
 import { useAuthStore } from '../../auth/auth.store'
 import { useMatchSummary } from '../hooks/useMatchSummary'
 import { MatchTeamSummary } from '../../../types/match.types'
+import FieldMatch from '../../lineup/components/FieldMatch'
+import { SOCCER_LAYOUTS_BY_FORMAT } from '../../lineup/layouts/soccerLayouts'
+import { autoAssignLineup } from '../../lineup/utils/autoAssignLineup'
 
 export default function MatchSummaryPage() {
   const { matchId } = useParams<{ matchId: string }>()
@@ -82,6 +85,29 @@ export default function MatchSummaryPage() {
   const challengeAccepted = !summary.challenge || summary.challenge.status === 'ACCEPTED'
   const isMatchReady = homeReady && awayReady && challengeAccepted
 
+  // Get field layout based on format
+  const formatCode = summary.format?.code || 'STANDARD_5V5'
+  const fieldLayout = SOCCER_LAYOUTS_BY_FORMAT[formatCode] ?? SOCCER_LAYOUTS_BY_FORMAT['STANDARD_5V5']
+
+  // Get accepted players for each team
+  const homeAcceptedPlayers = homeTeam?.rosters?.map(r => ({
+    userId: r.userId,
+    name: r.user?.name ?? 'Jugador',
+    avatarUrl: r.user?.avatarUrl,
+    suggestedRoleCode: r.suggestedRoleCode
+  })) ?? []
+
+  const awayAcceptedPlayers = awayTeam?.rosters?.map(r => ({
+    userId: r.userId,
+    name: r.user?.name ?? 'Jugador',
+    avatarUrl: r.user?.avatarUrl,
+    suggestedRoleCode: r.suggestedRoleCode
+  })) ?? []
+
+  // Auto-assign players to field positions
+  const homeLineup = autoAssignLineup(fieldLayout, homeAcceptedPlayers)
+  const awayLineup = autoAssignLineup(fieldLayout, awayAcceptedPlayers)
+
   if (isLoading) {
     return (
       <div className="min-h-screen pb-20">
@@ -106,11 +132,11 @@ export default function MatchSummaryPage() {
           )}
         </div>
 
-        {/* Format */}
+        {/* Format with Field View */}
         {(summary.format || homeTeam) && (
           <Card>
             <h3 className="font-semibold mb-3">Formato: {summary.format?.name || 'Partido'}</h3>
-            <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="grid grid-cols-2 gap-3 text-sm mb-4">
               <div>
                 <div className="text-muted">Jugadores en campo</div>
                 <div className="font-semibold">{homeTeam?.onFieldPlayers ?? summary.format?.onFieldPlayers ?? minRequired}</div>
@@ -120,6 +146,19 @@ export default function MatchSummaryPage() {
                 <div className="font-semibold">{homeTeam?.substitutesAllowed ?? summary.format?.substitutesAllowed ?? 0}</div>
               </div>
             </div>
+
+            {/* Single field showing both teams */}
+            {(homeAccepted > 0 || awayAccepted > 0) && (
+              <div className="mt-4">
+                <FieldMatch
+                  layout={fieldLayout}
+                  homeStarters={homeLineup.starters}
+                  awayStarters={awayLineup.starters}
+                  homeTeamName={homeTeam?.team?.name || 'Local'}
+                  awayTeamName={awayTeam?.team?.name || 'Visitante'}
+                />
+              </div>
+            )}
           </Card>
         )}
 
