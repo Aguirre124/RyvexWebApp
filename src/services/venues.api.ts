@@ -7,6 +7,13 @@ export type Venue = {
   zone?: string | null
   address?: string | null
   isActive?: boolean
+  capacity?: number | null
+  amenities?: Record<string, boolean> | null
+  pricing?: {
+    currency?: 'COP' | string
+    hourlyRate?: number
+    minBookingMinutes?: number
+  } | null
   [key: string]: any // Allow extra fields
 }
 

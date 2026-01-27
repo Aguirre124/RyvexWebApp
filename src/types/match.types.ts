@@ -110,6 +110,10 @@ export type MatchSummary = {
     city?: string | null
     address?: string | null
   }
+  scheduledAt?: string | null
+  durationMin?: number | null
+  estimatedPrice?: number | null
+  currency?: string | null
   // Legacy fields for backward compatibility
   match?: Match
   format?: FormatDetails & { code?: string }

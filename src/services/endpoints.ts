@@ -79,8 +79,20 @@ export const matchesApi = {
     await apiClient.post(`/matches/${matchId}/teams`, payload)
   },
 
-  updateVenue: async (matchId: string, venueId: string): Promise<void> => {
-    await apiClient.patch(`/matches/${matchId}`, { venueId })
+  updateVenue: async (
+    matchId: string, 
+    venueId: string,
+    bookingDetails?: {
+      scheduledAt?: string
+      durationMin?: number
+      estimatedPrice?: number | null
+      currency?: string
+    }
+  ): Promise<void> => {
+    await apiClient.patch(`/matches/${matchId}`, { 
+      venueId,
+      ...bookingDetails
+    })
   }
 }
 

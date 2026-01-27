@@ -13,11 +13,22 @@ import { MatchTeamSummary } from '../../../types/match.types'
 import FieldMatch from '../../lineup/components/FieldMatch'
 import { SOCCER_LAYOUTS_BY_FORMAT } from '../../lineup/layouts/soccerLayouts'
 import { autoAssignLineup } from '../../lineup/utils/autoAssignLineup'
+import { useMatchDraftStore } from '../../../store/matchDraft.store'
+import { formatCOP } from '../../../shared/utils/money'
 
 export default function MatchSummaryPage() {
   const { matchId } = useParams<{ matchId: string }>()
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
+  
+  // Get booking details from store
+  const {
+    scheduledAt: storedScheduledAt,
+    durationMin: storedDurationMin,
+    estimatedPrice: storedEstimatedPrice,
+    currency: storedCurrency
+  } = useMatchDraftStore()
+  
   const [inviteModal, setInviteModal] = useState<{
     teamId: string
     teamName: string
@@ -170,15 +181,56 @@ export default function MatchSummaryPage() {
                   {/* Venue Information */}
                   {summary.venue ? (
                     <Card>
-                      <h3 className="font-semibold mb-2">Cancha seleccionada</h3>
-                      <div className="space-y-2">
-                        <div className="font-semibold text-primary">{summary.venue.name}</div>
-                        {summary.venue.city && (
-                          <div className="text-sm text-muted">{summary.venue.city}</div>
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="font-semibold">Cancha seleccionada</h3>
+                        
+                        {/* Date/Time/Duration in top right */}
+                        {(summary.scheduledAt || storedScheduledAt) && (
+                          <div className="text-right">
+                            <div className="text-white font-medium text-sm">
+                              {new Date(summary.scheduledAt || storedScheduledAt!).toLocaleTimeString('es-CO', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </div>
+                            {(summary.durationMin || storedDurationMin) && (
+                              <div className="text-xs text-muted">
+                                Duración: {summary.durationMin || storedDurationMin} min
+                              </div>
+                            )}
+                            <div className="text-xs text-muted mt-1">
+                              {new Date(summary.scheduledAt || storedScheduledAt!).toLocaleDateString('es-CO', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric'
+                              })}
+                            </div>
+                          </div>
                         )}
-                        {summary.venue.address && (
-                          <div className="text-sm text-muted">{summary.venue.address}</div>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <div className="font-semibold text-primary text-lg">{summary.venue.name}</div>
+                          {summary.venue.city && (
+                            <div className="text-sm text-muted">{summary.venue.city}</div>
+                          )}
+                          {summary.venue.address && (
+                            <div className="text-sm text-muted">{summary.venue.address}</div>
+                          )}
+                        </div>
+
+                        {/* Price */}
+                        {(summary.estimatedPrice || storedEstimatedPrice) && (
+                          <div className="pt-2 border-t border-[#1f2937]">
+                            <div className="text-xs text-muted mb-1">Precio estimado</div>
+                            <div className="text-primary font-bold text-xl">
+                              {formatCOP(summary.estimatedPrice || storedEstimatedPrice!)}
+                            </div>
+                            <div className="text-xs text-muted">Este es un estimado. El precio final puede variar.</div>
+                          </div>
                         )}
+
                         <Button
                           onClick={() => navigate(`/matches/${matchId}/venues`)}
                           variant="secondary"

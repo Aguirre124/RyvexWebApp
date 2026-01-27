@@ -19,11 +19,40 @@ type MatchDraftState = {
   awayTeam: Team | null
   format: FormatCode | null
   
+  // Venue booking details
+  venueId: string | null
+  courtId: string | null
+  scheduledAt: string | null  // ISO string
+  durationMin: number | null  // 60, 90, 120
+  estimatedPrice: number | null
+  currency: string | null
+  
+  // Hold details
+  holdId: string | null
+  expiresAt: string | null  // ISO string
+  selectedStart: string | null  // ISO string
+  selectedEnd: string | null    // ISO string
+  
   // Actions
   setSport: (sport: Sport) => void
   setHomeTeam: (team: Team) => void
   setAwayTeam: (team: Team) => void
   setFormat: (format: FormatCode) => void
+  setVenueBooking: (data: {
+    venueId?: string | null
+    courtId?: string | null
+    scheduledAt?: string | null
+    durationMin?: number | null
+    estimatedPrice?: number | null
+    currency?: string | null
+  }) => void
+  setHold: (data: {
+    holdId?: string | null
+    expiresAt?: string | null
+    selectedStart?: string | null
+    selectedEnd?: string | null
+  }) => void
+  clearHold: () => void
   resetDraft: () => void
 }
 
@@ -31,7 +60,17 @@ const initialState = {
   selectedSport: null,
   homeTeam: null,
   awayTeam: null,
-  format: null
+  format: null,
+  venueId: null,
+  courtId: null,
+  scheduledAt: null,
+  durationMin: null,
+  estimatedPrice: null,
+  currency: null,
+  holdId: null,
+  expiresAt: null,
+  selectedStart: null,
+  selectedEnd: null
 }
 
 export const useMatchDraftStore = create<MatchDraftState>()(
@@ -43,6 +82,20 @@ export const useMatchDraftStore = create<MatchDraftState>()(
       setHomeTeam: (team) => set({ homeTeam: team }),
       setAwayTeam: (team) => set({ awayTeam: team }),
       setFormat: (format) => set({ format }),
+      setVenueBooking: (data) => set((state) => ({
+        ...state,
+        ...data
+      })),
+      setHold: (data) => set((state) => ({
+        ...state,
+        ...data
+      })),
+      clearHold: () => set({
+        holdId: null,
+        expiresAt: null,
+        selectedStart: null,
+        selectedEnd: null
+      }),
       resetDraft: () => set(initialState)
     }),
     {
