@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import Button from '../../../components/Button'
 import Card from '../../../components/Card'
 import Badge from '../../../components/Badge'
@@ -7,6 +8,8 @@ import Header from '../../../components/Header'
 import BottomNav from '../../../components/BottomNav'
 import Tabs from '../../../components/Tabs'
 import InvitePlayerModal from '../invites/InvitePlayerModal'
+import PaymentModal from '../../payments/components/PaymentModal'
+import PaymentSuccessModal from '../../payments/components/PaymentSuccessModal'
 import { useAuthStore } from '../../auth/auth.store'
 import { useMatchSummary } from '../hooks/useMatchSummary'
 import { MatchTeamSummary } from '../../../types/match.types'
@@ -15,6 +18,8 @@ import { SOCCER_LAYOUTS_BY_FORMAT } from '../../lineup/layouts/soccerLayouts'
 import { autoAssignLineup } from '../../lineup/utils/autoAssignLineup'
 import { useMatchDraftStore } from '../../../store/matchDraft.store'
 import { formatCOP } from '../../../shared/utils/money'
+import { formatTimeRange } from '../../../shared/utils/datetime'
+import { courtsApi } from '../../../services/courts.api'
 
 export default function MatchSummaryPage() {
   const { matchId } = useParams<{ matchId: string }>()
@@ -23,10 +28,12 @@ export default function MatchSummaryPage() {
   
   // Get booking details from store
   const {
+    courtId: storedCourtId,
     scheduledAt: storedScheduledAt,
     durationMin: storedDurationMin,
     estimatedPrice: storedEstimatedPrice,
-    currency: storedCurrency
+    currency: storedCurrency,
+    bookingId: storedBookingId
   } = useMatchDraftStore()
   
   const [inviteModal, setInviteModal] = useState<{
@@ -35,7 +42,21 @@ export default function MatchSummaryPage() {
     side: 'HOME' | 'AWAY'
   } | null>(null)
 
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false)
+  const [paymentSuccess, setPaymentSuccess] = useState<{
+    amount: number
+    currency: string
+  } | null>(null)
+
   const { data: summary, isLoading, error, refetch } = useMatchSummary(matchId)
+
+  // Fetch court details if we have a courtId from store or summary
+  const courtId = storedCourtId
+  const { data: courtDetails } = useQuery({
+    queryKey: ['court', courtId],
+    queryFn: () => courtsApi.getCourtById(courtId!),
+    enabled: !!courtId
+  })
 
   if (isLoading) {
     return (
@@ -181,20 +202,52 @@ export default function MatchSummaryPage() {
                   {/* Venue Information */}
                   {summary.venue ? (
                     <Card>
-                      <div className="flex items-start justify-between mb-3">
-                        <h3 className="font-semibold">Cancha seleccionada</h3>
+                      <h3 className="font-semibold text-center mb-4">Cancha seleccionada</h3>
+                      
+                      {/* DEBUG: Log prices */}
+                      {console.log('💰 Price Debug:', {
+                        summaryPrice: summary.estimatedPrice,
+                        storedPrice: storedEstimatedPrice,
+                        summaryVenue: summary.venue,
+                        bookingId: storedBookingId
+                      })}
+                      
+                      {/* Warning if price is 0 */}
+                      {storedEstimatedPrice === 0 && (
+                        <div className="mb-4 p-3 bg-yellow-900/30 border border-yellow-600 rounded-lg">
+                          <p className="text-yellow-400 text-sm">
+                            ⚠️ La reserva fue creada con precio $0. Por favor, haz clic en "Cambiar cancha" y vuelve a seleccionar el horario para actualizar el precio.
+                          </p>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-start justify-between gap-4">
+                        {/* Left: Venue and Court */}
+                        <div className="flex-1">
+                          <div className="font-semibold text-primary text-lg">
+                            {summary.venue.name}
+                            {courtDetails?.name && (
+                              <span className="text-white"> · {courtDetails.name}</span>
+                            )}
+                          </div>
+                          {summary.venue.city && (
+                            <div className="text-sm text-muted mt-1">{summary.venue.city}</div>
+                          )}
+                        </div>
                         
-                        {/* Date/Time/Duration in top right */}
+                        {/* Right: Date/Time/Duration */}
                         {(summary.scheduledAt || storedScheduledAt) && (
                           <div className="text-right">
-                            <div className="text-white font-medium text-sm">
-                              {new Date(summary.scheduledAt || storedScheduledAt!).toLocaleTimeString('es-CO', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
+                            <div className="text-white font-medium">
+                              {(() => {
+                                const startTime = summary.scheduledAt || storedScheduledAt!
+                                const duration = summary.durationMin || storedDurationMin || 60
+                                const endTime = new Date(new Date(startTime).getTime() + duration * 60000).toISOString()
+                                return formatTimeRange(startTime, endTime)
+                              })()}
                             </div>
                             {(summary.durationMin || storedDurationMin) && (
-                              <div className="text-xs text-muted">
+                              <div className="text-xs text-muted mt-1">
                                 Duración: {summary.durationMin || storedDurationMin} min
                               </div>
                             )}
@@ -208,37 +261,39 @@ export default function MatchSummaryPage() {
                           </div>
                         )}
                       </div>
-                      
-                      <div className="space-y-3">
-                        <div>
-                          <div className="font-semibold text-primary text-lg">{summary.venue.name}</div>
-                          {summary.venue.city && (
-                            <div className="text-sm text-muted">{summary.venue.city}</div>
-                          )}
-                          {summary.venue.address && (
-                            <div className="text-sm text-muted">{summary.venue.address}</div>
-                          )}
-                        </div>
 
-                        {/* Price */}
-                        {(summary.estimatedPrice || storedEstimatedPrice) && (
-                          <div className="pt-2 border-t border-[#1f2937]">
-                            <div className="text-xs text-muted mb-1">Precio estimado</div>
-                            <div className="text-primary font-bold text-xl">
-                              {formatCOP(summary.estimatedPrice || storedEstimatedPrice!)}
-                            </div>
-                            <div className="text-xs text-muted">Este es un estimado. El precio final puede variar.</div>
+                      {/* Price */}
+                      {(summary.estimatedPrice || storedEstimatedPrice) && (
+                        <div className="pt-3 mt-3 border-t border-[#1f2937]">
+                          <div className="text-xs text-muted mb-1">Precio estimado</div>
+                          <div className="text-primary font-bold text-xl">
+                            {formatCOP(summary.estimatedPrice || storedEstimatedPrice!)}
                           </div>
-                        )}
+                          <div className="text-xs text-muted">Este es un estimado. El precio final puede variar.</div>
+                        </div>
+                      )}
 
+                      {/* Payment Button */}
+                      {storedBookingId && (
                         <Button
-                          onClick={() => navigate(`/matches/${matchId}/venues`)}
-                          variant="secondary"
-                          className="w-full mt-2"
+                          onClick={() => {
+                            console.log('💳 Opening payment modal for booking:', storedBookingId)
+                            setPaymentModalOpen(true)
+                          }}
+                          variant="primary"
+                          className="w-full mt-3"
                         >
-                          Cambiar cancha
+                          Pagar y reservar
                         </Button>
-                      </div>
+                      )}
+
+                      <Button
+                        onClick={() => navigate(`/matches/${matchId}/venues`)}
+                        variant="secondary"
+                        className="w-full mt-3"
+                      >
+                        Cambiar cancha
+                      </Button>
                     </Card>
                   ) : (
                     <Card>
@@ -388,6 +443,64 @@ export default function MatchSummaryPage() {
           onClose={() => setInviteModal(null)}
         />
       )}
+
+      {storedBookingId && (
+        <PaymentModal
+          open={paymentModalOpen}
+          onClose={() => setPaymentModalOpen(false)}
+          bookingId={storedBookingId}
+          venueName={summary?.venue?.name || 'Cancha'}
+          courtName={courtDetails?.name || ''}
+          scheduledLabel={(() => {
+            const scheduledAt = summary?.scheduledAt || storedScheduledAt
+            const durationMin = summary?.durationMin || storedDurationMin
+            if (!scheduledAt || !durationMin) return ''
+            
+            const startTime = new Date(scheduledAt)
+            const endTime = new Date(startTime.getTime() + durationMin * 60000)
+            
+            const dateLabel = startTime.toLocaleDateString('es-CO', {
+              weekday: 'short',
+              day: 'numeric',
+              month: 'short'
+            })
+            
+            return `${dateLabel} · ${formatTimeRange(scheduledAt, endTime.toISOString())}`
+          })()}
+          onSuccess={() => {
+            const amount = summary?.estimatedPrice || storedEstimatedPrice || 0
+            const currency = summary?.currency || storedCurrency || 'COP'
+            setPaymentSuccess({ amount, currency })
+            setPaymentModalOpen(false)
+            refetch()
+          }}
+        />
+      )}
+
+      <PaymentSuccessModal
+        open={!!paymentSuccess}
+        onClose={() => setPaymentSuccess(null)}
+        venueName={summary?.venue?.name}
+        courtName={courtDetails?.name}
+        scheduledLabel={(() => {
+          const scheduledAt = summary?.scheduledAt || storedScheduledAt
+          const durationMin = summary?.durationMin || storedDurationMin
+          if (!scheduledAt || !durationMin) return ''
+          
+          const startTime = new Date(scheduledAt)
+          const endTime = new Date(startTime.getTime() + durationMin * 60000)
+          
+          const dateLabel = startTime.toLocaleDateString('es-CO', {
+            weekday: 'short',
+            day: 'numeric',
+            month: 'short'
+          })
+          
+          return `${dateLabel} · ${formatTimeRange(scheduledAt, endTime.toISOString())}`
+        })()}
+        amount={paymentSuccess?.amount}
+        currency={paymentSuccess?.currency}
+      />
     </div>
   )
 }

@@ -19,6 +19,27 @@ export function formatLocalTime(isoString: string): string {
 }
 
 /**
+ * Format time range from two ISO strings (HH:mm – HH:mm)
+ */
+export function formatTimeRange(startISO: string, endISO: string): string {
+  const startTime = formatLocalTime(startISO)
+  const endTime = formatLocalTime(endISO)
+  return `${startTime} – ${endTime}`
+}
+
+/**
+ * Format date for display (e.g., "Jueves 29 de enero" or "29/01/2026")
+ */
+export function formatDateLabel(dateString: string): string {
+  const date = typeof dateString === 'string' ? new Date(dateString) : dateString
+  return date.toLocaleDateString('es-CO', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long'
+  })
+}
+
+/**
  * Format ISO datetime to full local datetime
  */
 export function formatLocalDateTime(isoString: string): string {

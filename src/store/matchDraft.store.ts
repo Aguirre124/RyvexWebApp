@@ -26,6 +26,7 @@ type MatchDraftState = {
   durationMin: number | null  // 60, 90, 120
   estimatedPrice: number | null
   currency: string | null
+  bookingId: string | null  // Confirmed booking ID
   
   // Hold details
   holdId: string | null
@@ -45,6 +46,7 @@ type MatchDraftState = {
     durationMin?: number | null
     estimatedPrice?: number | null
     currency?: string | null
+    bookingId?: string | null
   }) => void
   setHold: (data: {
     holdId?: string | null
@@ -67,6 +69,7 @@ const initialState = {
   durationMin: null,
   estimatedPrice: null,
   currency: null,
+  bookingId: null,
   holdId: null,
   expiresAt: null,
   selectedStart: null,

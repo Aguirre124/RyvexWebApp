@@ -290,16 +290,20 @@ export default function VenueSelectPage() {
 
         {/* Step 3: Scheduling */}
         {step === 'schedule' && selectedVenue && selectedCourt && (
-          <SchedulingPanel
-            matchId={matchId!}
-            courtId={selectedCourt.id}
-            venueId={selectedVenue.id}
-            venueName={selectedVenue.name}
-            courtName={selectedCourt.name}
-            hourlyRate={selectedVenue.pricing?.hourlyRate}
-            currency={selectedVenue.pricing?.currency}
-            onBookingConfirmed={handleBookingConfirmed}
-          />
+          <>
+            {console.log('💰 Court hourlyRate:', selectedCourt.hourlyRate, 'Full court:', selectedCourt)}
+            {console.log('💰 Venue pricing:', selectedVenue.pricing)}
+            <SchedulingPanel
+              matchId={matchId!}
+              courtId={selectedCourt.id}
+              venueId={selectedVenue.id}
+              venueName={selectedVenue.name}
+              courtName={selectedCourt.name}
+              hourlyRate={selectedCourt.hourlyRate || selectedVenue.pricing?.hourlyRate}
+              currency={selectedCourt.currency || selectedVenue.pricing?.currency}
+              onBookingConfirmed={handleBookingConfirmed}
+            />
+          </>
         )}
       </main>
 

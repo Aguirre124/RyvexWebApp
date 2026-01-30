@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Button from '../../../components/Button'
 import Badge from '../../../components/Badge'
@@ -7,8 +7,13 @@ import { holdsApi } from '../../../services/holds.api'
 import { bookingsApi } from '../../../services/bookings.api'
 import { useMatchDraftStore } from '../../../store/matchDraft.store'
 import { useCountdown } from '../../../shared/hooks/useCountdown'
-import { formatLocalTime, toYYYYMMDD } from '../../../shared/utils/datetime'
+import { formatLocalTime, formatTimeRange, formatDateLabel, toYYYYMMDD } from '../../../shared/utils/datetime'
 import { calculateEstimatedPrice, formatCOP } from '../../../shared/utils/money'
+
+type Slot = {
+  start: string
+  end: string
+}
 
 type SchedulingPanelProps = {
   matchId: string
@@ -26,6 +31,21 @@ const DURATION_OPTIONS = [
   { value: 90, label: '1h 30m' },
   { value: 120, label: '2 horas' }
 ]
+
+type TimeOfDay = 'morning' | 'afternoon' | 'evening'
+
+function getTimeOfDay(isoString: string): TimeOfDay {
+  const hour = new Date(isoString).getHours()
+  if (hour < 12) return 'morning'
+  if (hour < 18) return 'afternoon'
+  return 'evening'
+}
+
+const TIME_OF_DAY_LABELS = {
+  morning: 'Mañana',
+  afternoon: 'Tarde',
+  evening: 'Noche'
+}
 
 export default function SchedulingPanel({
   matchId,
@@ -57,7 +77,7 @@ export default function SchedulingPanel({
     return toYYYYMMDD(tomorrow)
   })
   const [durationMin, setDurationMin] = useState(storedDuration || 60)
-  const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
+  const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   // Countdown for hold
@@ -148,7 +168,8 @@ export default function SchedulingPanel({
         scheduledAt: booking.start,
         durationMin: booking.durationMin,
         estimatedPrice: booking.price,
-        currency: booking.currency
+        currency: booking.currency,
+        bookingId: booking.id
       })
       clearHold()
       
@@ -169,31 +190,40 @@ export default function SchedulingPanel({
     }
   })
 
-  const handleSlotClick = (start: string) => {
-    console.log('👆 Slot clicked:', start)
+  const handleSlotClick = (slot: Slot) => {
     if (holdId) {
-      // Clear previous hold
       clearHold()
     }
-    setSelectedSlot(start)
+    setSelectedSlot(slot)
     setErrorMessage(null)
   }
 
   const handleConfirmSelection = () => {
     if (selectedSlot) {
-      createHoldMutation.mutate(selectedSlot)
+      createHoldMutation.mutate(selectedSlot.start)
     }
   }
 
   const handleDurationChange = (newDuration: number) => {
     setDurationMin(newDuration)
     setVenueBooking({ durationMin: newDuration })
-    // Clear hold when changing duration
+    // Clear hold and selection when changing duration
     if (holdId) {
       clearHold()
-      setSelectedSlot(null)
     }
+    setSelectedSlot(null)
   }
+
+  // Group slots by time of day
+  const groupedSlots = useMemo(() => {
+    if (!availability?.slots) return { morning: [], afternoon: [], evening: [] }
+    
+    return availability.slots.reduce((acc, slot) => {
+      const timeOfDay = getTimeOfDay(slot.start)
+      acc[timeOfDay].push(slot)
+      return acc
+    }, { morning: [] as Slot[], afternoon: [] as Slot[], evening: [] as Slot[] })
+  }, [availability?.slots])
 
   const estimatedPrice = hourlyRate ? calculateEstimatedPrice(hourlyRate, durationMin) : null
 
@@ -211,11 +241,11 @@ export default function SchedulingPanel({
               value={date}
               onChange={(e) => {
                 setDate(e.target.value)
-                // Clear hold when changing date
+                // Clear hold and selection when changing date
                 if (holdId) {
                   clearHold()
-                  setSelectedSlot(null)
                 }
+                setSelectedSlot(null)
               }}
               min={toYYYYMMDD(new Date())}
               className="w-full px-3 py-2 bg-[#071422] border border-[#1f2937] rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -240,25 +270,12 @@ export default function SchedulingPanel({
         </div>
 
         {/* Price estimate */}
-        {estimatedPrice && (
+        {estimatedPrice && !selectedSlot && (
           <div className="mt-2 text-sm text-muted">
             Precio estimado: <span className="text-primary font-semibold">{formatCOP(estimatedPrice)}</span>
           </div>
         )}
       </div>
-
-      {/* Hold status */}
-      {holdId && !isExpired && (
-        <div className="bg-[#0b1220] border border-primary rounded-lg p-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-xs text-muted">Reserva temporal</div>
-              <div className="text-white font-medium">{selectedSlot && formatLocalTime(selectedSlot)}</div>
-            </div>
-            <Badge variant="warning">{formattedTime}</Badge>
-          </div>
-        </div>
-      )}
 
       {/* Available slots */}
       <div>
@@ -285,43 +302,89 @@ export default function SchedulingPanel({
           <div className="bg-[#0b1220] border border-yellow-500/30 rounded-lg p-4">
             <p className="text-yellow-400 text-sm mb-2">⚠️ No hay horarios disponibles</p>
             <p className="text-muted text-xs">
-              El backend no devolvió slots para esta fecha y duración. 
-              Verifica la consola del navegador para más detalles.
+              No hay slots disponibles para esta fecha y duración.
             </p>
-            <div className="mt-3 text-xs bg-[#071422] p-2 rounded">
-              <div className="text-muted">Cancha: <span className="text-white">{courtId}</span></div>
-              <div className="text-muted">Fecha: <span className="text-white">{date}</span></div>
-              <div className="text-muted">Duración: <span className="text-white">{durationMin} min</span></div>
-            </div>
           </div>
         )}
 
         {availability && availability.slots.length > 0 && (
-          <div className="grid grid-cols-3 gap-2">
-            {availability.slots.map((slot) => {
-              const isSelected = selectedSlot === slot.start
+          <div className="space-y-4">
+            {(['morning', 'afternoon', 'evening'] as TimeOfDay[]).map((period) => {
+              const slots = groupedSlots[period]
+              if (slots.length === 0) return null
+
               return (
-                <button
-                  key={slot.start}
-                  onClick={() => handleSlotClick(slot.start)}
-                  disabled={createHoldMutation.isPending}
-                  className={`
-                    px-4 py-3 rounded-lg font-medium text-sm transition-all
-                    ${isSelected
-                      ? 'bg-primary text-black'
-                      : 'bg-[#0b1220] text-white hover:bg-[#1f2937]'
-                    }
-                    ${createHoldMutation.isPending ? 'opacity-50 cursor-wait' : 'cursor-pointer'}
-                    border border-[#1f2937]
-                  `}
-                >
-                  {formatLocalTime(slot.start)}
-                </button>
+                <div key={period}>
+                  <h5 className="text-sm font-medium text-muted mb-2">
+                    {TIME_OF_DAY_LABELS[period]}
+                  </h5>
+                  <div className="grid grid-cols-2 gap-2">
+                    {slots.map((slot) => {
+                      const isSelected = selectedSlot?.start === slot.start
+                      return (
+                        <button
+                          key={slot.start}
+                          onClick={() => handleSlotClick(slot)}
+                          disabled={createHoldMutation.isPending}
+                          aria-pressed={isSelected}
+                          className={`
+                            relative px-4 py-3 rounded-xl font-semibold text-sm transition-all
+                            border flex items-center justify-between gap-2
+                            ${isSelected
+                              ? 'border-teal-400 bg-teal-500/10 text-teal-100 ring-2 ring-teal-500/30'
+                              : 'border-white/10 bg-[#0b1220] text-white hover:bg-white/5'
+                            }
+                            ${createHoldMutation.isPending ? 'opacity-50 cursor-wait' : 'cursor-pointer'}
+                            focus:outline-none focus:ring-2 focus:ring-primary/50
+                          `}
+                        >
+                          <span className="text-left">
+                            {formatTimeRange(slot.start, slot.end)}
+                          </span>
+                          {isSelected && (
+                            <svg className="w-4 h-4 flex-shrink-0 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
               )
             })}
           </div>
         )}
       </div>
+
+      {/* Summary Panel */}
+      {selectedSlot && (
+        <div className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-2">
+          <h4 className="text-sm font-semibold text-white mb-3">Resumen de reserva</h4>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted">Fecha:</span>
+              <span className="text-white font-medium">{formatDateLabel(date)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted">Horario:</span>
+              <span className="text-white font-medium">{formatTimeRange(selectedSlot.start, selectedSlot.end)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted">Cancha:</span>
+              <span className="text-white font-medium">
+                {venueName}{courtName ? ` · ${courtName}` : ''}
+              </span>
+            </div>
+            {estimatedPrice && (
+              <div className="flex justify-between pt-2 border-t border-white/10">
+                <span className="text-muted">Precio estimado:</span>
+                <span className="text-primary font-semibold">{formatCOP(estimatedPrice)}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Error Modal */}
       {errorMessage && (
@@ -351,11 +414,13 @@ export default function SchedulingPanel({
           onClick={handleConfirmSelection}
           disabled={!selectedSlot || createHoldMutation.isPending || confirmBookingMutation.isPending}
           variant="primary"
-          className="w-full"
+          className="w-full disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {createHoldMutation.isPending || confirmBookingMutation.isPending
             ? 'Procesando...'
-            : 'Seleccionar horario'}
+            : selectedSlot
+            ? 'Continuar con este horario'
+            : 'Selecciona un horario'}
         </Button>
       )}
 
