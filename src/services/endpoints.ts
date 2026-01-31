@@ -93,6 +93,10 @@ export const matchesApi = {
       venueId,
       ...bookingDetails
     })
+  },
+
+  updateVisibility: async (matchId: string, isPublic: boolean): Promise<void> => {
+    await apiClient.patch(`/matches/${matchId}`, { isPublic })
   }
 }
 

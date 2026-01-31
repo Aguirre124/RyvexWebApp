@@ -43,7 +43,7 @@ export default function MatchSummaryPage() {
     queryFn: () => bookingsApi.getBookingDetails(storedBookingId!),
     enabled: !!storedBookingId
   })
-  
+
   const [inviteModal, setInviteModal] = useState<{
     teamId: string
     teamName: string
@@ -118,6 +118,14 @@ export default function MatchSummaryPage() {
     venue: summary.venue,
     storedBookingId,
     bookingDetails
+  })
+
+  // DEBUG: Check visibility data
+  console.log('👁️ Visibility Debug:', {
+    userId: user?.id,
+    createdById: summary.createdById,
+    isPublic: summary.isPublic,
+    shouldShowToggle: user?.id === summary.createdById
   })
 
   // Check if booking has been paid - use paymentStatus field

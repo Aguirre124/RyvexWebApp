@@ -52,6 +52,8 @@ export type Match = {
   status: MatchStatus
   homeTeamId?: string
   awayTeamId?: string
+  createdById: string
+  isPublic: boolean
   createdAt: string
 }
 
@@ -102,6 +104,8 @@ export type MatchSummary = {
   id: string
   formatId: string
   status: MatchStatus
+  createdById: string
+  isPublic: boolean
   matchTeams: MatchTeamSummary[]
   venueId?: string | null
   venue?: {
@@ -114,6 +118,13 @@ export type MatchSummary = {
   durationMin?: number | null
   estimatedPrice?: number | null
   currency?: string | null
+  bookingId?: string | null
+  booking?: {
+    id: string
+    status: string
+    paymentStatus?: string
+    isPaid?: boolean
+  }
   // Legacy fields for backward compatibility
   match?: Match
   format?: FormatDetails & { code?: string }
