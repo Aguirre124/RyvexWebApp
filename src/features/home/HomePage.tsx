@@ -66,8 +66,8 @@ export default function HomePage() {
         </svg>
       </div>
 
-      {/* Visibility Toggle - Show only for match creator in "Mis Partidos" */}
-      {showVisibilityToggle && (user?.id === match.createdById || !match.createdById) && (
+      {/* Visibility Toggle - Show for match creator always, regardless of tab */}
+      {(user?.id === match.createdById || !match.createdById) && (
         <div 
           onClick={(e) => e.stopPropagation()}
           className="mt-3 pt-3 border-t border-gray-700 flex items-center justify-between"

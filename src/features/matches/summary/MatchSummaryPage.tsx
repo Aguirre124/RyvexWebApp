@@ -10,8 +10,10 @@ import Tabs from '../../../components/Tabs'
 import InvitePlayerModal from '../invites/InvitePlayerModal'
 import PaymentModal from '../../payments/components/PaymentModal'
 import PaymentSuccessModal from '../../payments/components/PaymentSuccessModal'
+import DisabledReasonBanner from '../components/results/DisabledReasonBanner'
 import { useAuthStore } from '../../auth/auth.store'
 import { useMatchSummary } from '../hooks/useMatchSummary'
+import { useMatchResults } from '../hooks/useMatchResults'
 import { MatchTeamSummary } from '../../../types/match.types'
 import FieldMatch from '../../lineup/components/FieldMatch'
 import { SOCCER_LAYOUTS_BY_FORMAT } from '../../lineup/layouts/soccerLayouts'
@@ -57,6 +59,9 @@ export default function MatchSummaryPage() {
   } | null>(null)
 
   const { data: summary, isLoading, error, refetch } = useMatchSummary(matchId)
+
+  // Fetch match results status
+  const { data: matchResults } = useMatchResults(matchId)
 
   // Fetch court details if we have a courtId from store or summary
   const courtId = storedCourtId
@@ -130,6 +135,17 @@ export default function MatchSummaryPage() {
 
   // Check if booking has been paid - use paymentStatus field
   const isBookingPaid = bookingDetails?.paymentStatus === 'PAID'
+
+  // DEBUG: Check results button visibility (after isBookingPaid is defined)
+  console.log('📊 Results Button Debug:', {
+    paymentSuccess,
+    isBookingPaid,
+    userId: user?.id,
+    createdById: summary.createdById,
+    isCreator: user?.id === summary.createdById,
+    shouldShowButton: (paymentSuccess || isBookingPaid) && user?.id === summary.createdById,
+    matchResults
+  })
 
   // Extract counts from _count field
   const homeInvited = homeTeam?._count?.invites ?? 0
@@ -363,6 +379,60 @@ export default function MatchSummaryPage() {
                         >
                           Cambiar cancha
                         </Button>
+                      )}
+
+                      {/* Register Results Button - Always show for match creator after payment */}
+                      {/* If createdById is undefined, assume user is creator (fallback for legacy matches) */}
+                      {(user?.id === summary.createdById || !summary.createdById) && (
+                        <div className="mt-3">
+                          {/* Show disabled reason banner when not ready */}
+                          {matchResults && !matchResults.canSubmitResults && !matchResults.result && (
+                            <DisabledReasonBanner 
+                              reason={matchResults.reason}
+                              endAt={matchResults.booking?.startAt}
+                            />
+                          )}
+                          
+                          {/* Show results if already submitted */}
+                          {matchResults?.result ? (
+                            <div className="p-3 bg-green-900/20 border border-green-600/30 rounded-lg">
+                              <div className="text-green-400 font-semibold mb-2">
+                                ✓ Resultados registrados
+                              </div>
+                              <div className="text-sm text-gray-300">
+                                {homeTeam?.team?.name} {matchResults.result.homeGoals} - {matchResults.result.awayGoals} {awayTeam?.team?.name}
+                              </div>
+                              {matchResults.result.mvpUserId && (
+                                <div className="text-xs text-gray-400 mt-1">
+                                  🏆 MVP: {
+                                    [...(homeTeam?.rosters || []), ...(awayTeam?.rosters || [])]
+                                      .find(r => r.userId === matchResults.result!.mvpUserId)
+                                      ?.user?.name || 'Jugador'
+                                  }
+                                </div>
+                              )}
+                              <Button
+                                onClick={() => navigate(`/matches/${matchId}/results`)}
+                                variant="secondary"
+                                className="w-full mt-2"
+                              >
+                                Ver resultados
+                              </Button>
+                            </div>
+                          ) : (
+                            /* Show register button - always visible, disabled until match starts */
+                            <Button
+                              onClick={() => navigate(`/matches/${matchId}/results/new`)}
+                              variant="primary"
+                              disabled={!matchResults?.canSubmitResults}
+                              className="w-full"
+                            >
+                              {matchResults?.canSubmitResults 
+                                ? 'Registrar resultados' 
+                                : 'Registrar resultados (disponible al inicio del partido)'}
+                            </Button>
+                          )}
+                        </div>
                       )}
                     </Card>
                   ) : (

@@ -6,6 +6,7 @@ import HomePage from './features/home/HomePage'
 import GoogleCallbackPage from './features/auth/GoogleCallbackPage'
 import CreateMatchWizardPage from './features/matches/create/CreateMatchWizardPage'
 import MatchSummaryPage from './features/matches/summary/MatchSummaryPage'
+import MatchResultsPage from './features/matches/pages/MatchResultsPage'
 import ChallengePage from './features/challenge/ChallengePage'
 import InviteAcceptPage from './features/invites/InviteAcceptPage'
 import MatchCreateLayout from './features/matches/create/MatchCreateLayout'
@@ -92,6 +93,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <MatchSummaryPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/matches/:matchId/results/new"
+          element={
+            <ProtectedRoute>
+              <MatchResultsPage />
             </ProtectedRoute>
           }
         />
