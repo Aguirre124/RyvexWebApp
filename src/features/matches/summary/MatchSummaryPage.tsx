@@ -20,6 +20,7 @@ import { useMatchDraftStore } from '../../../store/matchDraft.store'
 import { formatCOP } from '../../../shared/utils/money'
 import { formatTimeRange } from '../../../shared/utils/datetime'
 import { courtsApi } from '../../../services/courts.api'
+import { bookingsApi } from '../../../services/bookings.api'
 
 export default function MatchSummaryPage() {
   const { matchId } = useParams<{ matchId: string }>()
@@ -35,6 +36,13 @@ export default function MatchSummaryPage() {
     currency: storedCurrency,
     bookingId: storedBookingId
   } = useMatchDraftStore()
+  
+  // Fetch booking details to check payment status
+  const { data: bookingDetails } = useQuery({
+    queryKey: ['booking', storedBookingId],
+    queryFn: () => bookingsApi.getBookingDetails(storedBookingId!),
+    enabled: !!storedBookingId
+  })
   
   const [inviteModal, setInviteModal] = useState<{
     teamId: string
@@ -103,6 +111,18 @@ export default function MatchSummaryPage() {
   const homeTeam = summary.matchTeams?.find(t => t.side === 'HOME')
   const awayTeam = summary.matchTeams?.find(t => t.side === 'AWAY')
 
+  // DEBUG: Log booking data to check payment status
+  console.log('🔍 Booking Debug:', {
+    booking: summary.booking,
+    bookingId: summary.bookingId,
+    venue: summary.venue,
+    storedBookingId,
+    bookingDetails
+  })
+
+  // Check if booking has been paid - use paymentStatus field
+  const isBookingPaid = bookingDetails?.paymentStatus === 'PAID'
+
   // Extract counts from _count field
   const homeInvited = homeTeam?._count?.invites ?? 0
   const homeAccepted = homeTeam?._count?.rosters ?? 0
@@ -116,7 +136,12 @@ export default function MatchSummaryPage() {
   const awayReady = awayAccepted >= minRequired
 
   const challengeAccepted = !summary.challenge || summary.challenge.status === 'ACCEPTED'
-  const isMatchReady = homeReady && awayReady && challengeAccepted
+  
+  // Check if venue/court is scheduled
+  const isVenueScheduled = !!(summary.venue && (summary.scheduledAt || storedScheduledAt))
+  
+  // Match is ready when players are ready AND challenge accepted AND venue scheduled
+  const isMatchReady = homeReady && awayReady && challengeAccepted && isVenueScheduled
 
   // Get field layout based on format
   const formatCode = summary.format?.code || 'STANDARD_5V5'
@@ -160,11 +185,29 @@ export default function MatchSummaryPage() {
       <main className="px-4 space-y-4 pt-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Resumen del partido</h1>
-          {isMatchReady ? (
-            <Badge variant="success">Listo</Badge>
-          ) : (
-            <Badge variant="warning">Pendiente</Badge>
-          )}
+          <div className="flex gap-2">
+            {/* Main Match Status */}
+            {isMatchReady ? (
+              <Badge variant="success">Listo</Badge>
+            ) : (
+              <Badge variant="warning">
+                {!isVenueScheduled ? 'Sin cancha' : 
+                 !homeReady || !awayReady ? 'Faltan jugadores' : 
+                 !challengeAccepted ? 'Esperando aceptación' : 'Pendiente'}
+              </Badge>
+            )}
+            
+            {/* Payment Status - only show if venue is scheduled */}
+            {isVenueScheduled && (
+              <>
+                {(paymentSuccess || isBookingPaid) ? (
+                  <Badge variant="success">Pagado</Badge>
+                ) : (
+                  <Badge variant="info">Pago pendiente</Badge>
+                )}
+              </>
+            )}
+          </div>
         </div>
 
         <Tabs
@@ -265,16 +308,15 @@ export default function MatchSummaryPage() {
                       {/* Price */}
                       {(summary.estimatedPrice || storedEstimatedPrice) && (
                         <div className="pt-3 mt-3 border-t border-[#1f2937]">
-                          <div className="text-xs text-muted mb-1">Precio estimado</div>
+                          <div className="text-xs text-muted mb-1">Precio</div>
                           <div className="text-primary font-bold text-xl">
                             {formatCOP(summary.estimatedPrice || storedEstimatedPrice!)}
                           </div>
-                          <div className="text-xs text-muted">Este es un estimado. El precio final puede variar.</div>
                         </div>
                       )}
 
                       {/* Payment Button */}
-                      {storedBookingId && (
+                      {storedBookingId && !paymentSuccess && !isBookingPaid && (
                         <Button
                           onClick={() => {
                             console.log('💳 Opening payment modal for booking:', storedBookingId)
@@ -287,13 +329,33 @@ export default function MatchSummaryPage() {
                         </Button>
                       )}
 
-                      <Button
-                        onClick={() => navigate(`/matches/${matchId}/venues`)}
-                        variant="secondary"
-                        className="w-full mt-3"
-                      >
-                        Cambiar cancha
-                      </Button>
+                      {/* Paid Status */}
+                      {storedBookingId && (paymentSuccess || isBookingPaid) && (
+                        <div className="mt-3 p-3 bg-primary/10 border border-primary/30 rounded-lg text-center">
+                          <div className="text-primary font-semibold">✓ Reserva confirmada y pagada</div>
+                          <div className="text-sm text-muted mt-1">Tu cancha está reservada</div>
+                        </div>
+                      )}
+
+                      {/* Change Venue Button - disabled after payment */}
+                      {(paymentSuccess || isBookingPaid) ? (
+                        <div className="mt-3 p-3 bg-gray-800 border border-gray-600 rounded-lg text-center">
+                          <div className="text-gray-400 text-sm">
+                            🔒 No se puede cambiar la cancha después del pago
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            Solo un administrador puede reprogramar partidos pagados
+                          </div>
+                        </div>
+                      ) : (
+                        <Button
+                          onClick={() => navigate(`/matches/${matchId}/venues`)}
+                          variant="secondary"
+                          className="w-full mt-3"
+                        >
+                          Cambiar cancha
+                        </Button>
+                      )}
                     </Card>
                   ) : (
                     <Card>
