@@ -29,7 +29,7 @@ export default function StepBHomeTeamSelection() {
   const handleContinue = () => {
     if (!selectedTeam) return
     setHomeTeam(selectedTeam)
-    navigate('/matches/create/away-team')
+    navigate('/matches/create/match-type')
   }
 
   const handleCreateTeam = () => {

@@ -78,6 +78,7 @@ export type MatchTeamSummary = {
   matchId: string
   teamId: string
   side: 'HOME' | 'AWAY'
+  label?: string  // e.g., "A" or "B" for training matches
   onFieldPlayers: number
   substitutesAllowed: number
   maxSquadSize: number
@@ -106,7 +107,12 @@ export type MatchSummary = {
   status: MatchStatus
   createdById: string
   isPublic: boolean
+  flowType?: 'TRAINING' | 'CHALLENGE'  // Training vs Challenge flow
   matchTeams: MatchTeamSummary[]
+  permissions?: {
+    canInviteHome: boolean
+    canInviteAway: boolean
+  }
   venueId?: string | null
   venue?: {
     id: string

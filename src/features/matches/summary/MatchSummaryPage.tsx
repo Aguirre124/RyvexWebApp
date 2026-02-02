@@ -256,8 +256,8 @@ export default function MatchSummaryPage() {
                           layout={fieldLayout}
                           homeStarters={homeLineup.starters}
                           awayStarters={awayLineup.starters}
-                          homeTeamName={homeTeam?.team?.name || 'Local'}
-                          awayTeamName={awayTeam?.team?.name || 'Visitante'}
+                          homeTeamName={homeTeam?.label ? `${homeTeam.team.name} ${homeTeam.label}` : homeTeam?.team?.name || 'Local'}
+                          awayTeamName={awayTeam?.label ? `${awayTeam.team.name} ${awayTeam.label}` : awayTeam?.team?.name || 'Visitante'}
                           homeBench={homeLineup.bench}
                           awayBench={awayLineup.bench}
                           maxSubstitutes={homeTeam?.substitutesAllowed ?? summary.format?.substitutesAllowed ?? 5}
@@ -270,14 +270,6 @@ export default function MatchSummaryPage() {
                   {summary.venue ? (
                     <Card>
                       <h3 className="font-semibold text-center mb-4">Cancha seleccionada</h3>
-                      
-                      {/* DEBUG: Log prices */}
-                      {console.log('💰 Price Debug:', {
-                        summaryPrice: summary.estimatedPrice,
-                        storedPrice: storedEstimatedPrice,
-                        summaryVenue: summary.venue,
-                        bookingId: storedBookingId
-                      })}
                       
                       {/* Warning if price is 0 */}
                       {storedEstimatedPrice === 0 && (
@@ -475,7 +467,12 @@ export default function MatchSummaryPage() {
                     <Card>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <h3 className="font-semibold">{homeTeam.team.name}</h3>
+                          <h3 className="font-semibold">
+                            {homeTeam.team.name}
+                            {homeTeam.label && (
+                              <span className="ml-2 text-blue-400">{homeTeam.label}</span>
+                            )}
+                          </h3>
                           <Badge variant="info">LOCAL</Badge>
                         </div>
                         <div className="grid grid-cols-3 gap-2 text-sm">
@@ -499,19 +496,29 @@ export default function MatchSummaryPage() {
                             Faltan {minRequired - homeAccepted} jugadores
                           </Badge>
                         )}
-                        <Button
-                          onClick={() => {
-                            setInviteModal({
-                              teamId: homeTeam.teamId,
-                              teamName: homeTeam.team.name,
-                              side: 'HOME'
-                            })
-                          }}
-                          variant="primary"
-                          className="w-full mt-2"
-                        >
-                          + Agregar jugador
-                        </Button>
+                        
+                        {/* Check permissions before showing invite button */}
+                        {summary.permissions?.canInviteHome !== false ? (
+                          <Button
+                            onClick={() => {
+                              setInviteModal({
+                                teamId: homeTeam.teamId,
+                                teamName: homeTeam.team.name,
+                                side: 'HOME'
+                              })
+                            }}
+                            variant="primary"
+                            className="w-full mt-2"
+                          >
+                            + Agregar jugador
+                          </Button>
+                        ) : (
+                          <div className="mt-2 p-3 bg-gray-800 border border-gray-600 rounded-lg text-center">
+                            <div className="text-gray-400 text-sm">
+                              🔒 Solo el capitán del equipo puede invitar jugadores
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </Card>
                   )}
@@ -521,7 +528,12 @@ export default function MatchSummaryPage() {
                     <Card>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <h3 className="font-semibold">{awayTeam.team.name}</h3>
+                          <h3 className="font-semibold">
+                            {awayTeam.team.name}
+                            {awayTeam.label && (
+                              <span className="ml-2 text-red-400">{awayTeam.label}</span>
+                            )}
+                          </h3>
                           <Badge variant="warning">VISITANTE</Badge>
                         </div>
                         <div className="grid grid-cols-3 gap-2 text-sm">
@@ -545,19 +557,36 @@ export default function MatchSummaryPage() {
                             Faltan {minRequired - awayAccepted} jugadores
                           </Badge>
                         )}
-                        <Button
-                          onClick={() => {
-                            setInviteModal({
-                              teamId: awayTeam.teamId,
-                              teamName: awayTeam.team.name,
-                              side: 'AWAY'
-                            })
-                          }}
-                          variant="primary"
-                          className="w-full mt-2"
-                        >
-                          + Agregar jugador
-                        </Button>
+                        
+                        {/* Check permissions before showing invite button */}
+                        {/* For CHALLENGE with PENDING status, show different message */}
+                        {summary.challenge?.status === 'PENDING' ? (
+                          <div className="mt-2 p-3 bg-yellow-900/30 border border-yellow-600 rounded-lg text-center">
+                            <div className="text-yellow-400 text-sm">
+                              ⏳ Esperando aceptación del capitán rival
+                            </div>
+                          </div>
+                        ) : summary.permissions?.canInviteAway !== false ? (
+                          <Button
+                            onClick={() => {
+                              setInviteModal({
+                                teamId: awayTeam.teamId,
+                                teamName: awayTeam.team.name,
+                                side: 'AWAY'
+                              })
+                            }}
+                            variant="primary"
+                            className="w-full mt-2"
+                          >
+                            + Agregar jugador
+                          </Button>
+                        ) : (
+                          <div className="mt-2 p-3 bg-gray-800 border border-gray-600 rounded-lg text-center">
+                            <div className="text-gray-400 text-sm">
+                              🔒 Solo el capitán del equipo puede invitar jugadores
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </Card>
                   )}

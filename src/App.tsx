@@ -14,6 +14,9 @@ import StepASportSelection from './features/matches/create/StepASportSelection'
 import StepBHomeTeamSelection from './features/matches/create/StepBHomeTeamSelection'
 import StepCAwayTeamSelection from './features/matches/create/StepCAwayTeamSelection'
 import StepDFormatSelection from './features/matches/create/StepDFormatSelection'
+import MatchTypeStep from './features/matches/create/MatchTypeStep'
+import TrainingInfoStep from './features/matches/create/TrainingInfoStep'
+import ChallengeSearchStep from './features/matches/create/ChallengeSearchStep'
 import Step3Invites from './features/matches/create/components/Step3Invites'
 import TeamCreatePage from './features/teams/TeamCreatePage'
 import VenueSelectPage from './features/venues/pages/VenueSelectPage'
@@ -61,6 +64,9 @@ export default function App() {
         >
           <Route index element={<StepASportSelection />} />
           <Route path="home-team" element={<StepBHomeTeamSelection />} />
+          <Route path="match-type" element={<MatchTypeStep />} />
+          <Route path="training-info" element={<TrainingInfoStep />} />
+          <Route path="challenge" element={<ChallengeSearchStep />} />
           <Route path="away-team" element={<StepCAwayTeamSelection />} />
           <Route path="format" element={<StepDFormatSelection />} />
         </Route>

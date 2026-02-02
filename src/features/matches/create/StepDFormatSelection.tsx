@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import Card from '../../../components/Card'
 import Button from '../../../components/Button'
@@ -48,11 +48,15 @@ const formats: FormatOption[] = [
 
 export default function StepDFormatSelection() {
   const navigate = useNavigate()
+  const location = useLocation()
   const queryClient = useQueryClient()
-  const { selectedSport, homeTeam, awayTeam, setFormat, resetDraft } = useMatchDraftStore()
+  const { selectedSport, homeTeam, awayTeam, flowType, matchId: storeMatchId, setFormat, resetDraft } = useMatchDraftStore()
   const [selectedFormatLocal, setSelectedFormatLocal] = useState<FormatOption | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
+
+  // Get matchId from store or navigation state (fallback)
+  const matchId = storeMatchId || (location.state as any)?.matchId
 
   const createMatchMutation = useMutation({
     mutationFn: async (format: FormatOption) => {
@@ -60,10 +64,19 @@ export default function StepDFormatSelection() {
         throw new Error('Faltan datos necesarios')
       }
 
-      // Step 1: Create the match
+      // If match already exists (TRAINING flow), just update format and navigate
+      if (matchId) {
+        // For training matches, just save format and navigate to next step
+        return { id: matchId }
+      }
+
+      // Otherwise, create match (legacy CHALLENGE flow)
+      // Note: This should not be used for new TRAINING/CHALLENGE flows
+      // Step 1: Create the match with flowType if available
       const match = await matchesApi.create({
         sportId: selectedSport.id,
         matchType: 'FRIENDLY',
+        flowType: flowType || undefined,  // Include flowType if available (though this path shouldn't be used for new flows)
         homeTeamId: homeTeam.id,
         awayTeamId: awayTeam.id,
         tournamentId: null,
@@ -72,17 +85,24 @@ export default function StepDFormatSelection() {
         durationMin: null
       })
 
-      // Step 2: Assign home team to match
-      await matchesApi.assignTeam(match.id, {
-        teamId: homeTeam.id,
-        side: 'HOME'
-      })
+      // Only assign teams manually if they weren't already assigned during creation
+      // TRAINING and new CHALLENGE matches already have teams assigned by backend
+      const matchData = match as any // Backend may return matchTeams for TRAINING/CHALLENGE
+      const needsTeamAssignment = !matchData.matchTeams || matchData.matchTeams.length === 0
+      
+      if (needsTeamAssignment) {
+        // Step 2: Assign home team to match (legacy flow only)
+        await matchesApi.assignTeam(match.id, {
+          teamId: homeTeam.id,
+          side: 'HOME'
+        })
 
-      // Step 3: Assign away team to match
-      await matchesApi.assignTeam(match.id, {
-        teamId: awayTeam.id,
-        side: 'AWAY'
-      })
+        // Step 3: Assign away team to match (legacy flow only)
+        await matchesApi.assignTeam(match.id, {
+          teamId: awayTeam.id,
+          side: 'AWAY'
+        })
+      }
 
       return match
     },
@@ -102,7 +122,12 @@ export default function StepDFormatSelection() {
   const handleSuccessClose = () => {
     setShowSuccessModal(false)
     resetDraft()
-    navigate('/home')
+    // For training matches with matchId, navigate to summary
+    if (matchId) {
+      navigate(`/matches/${matchId}/summary`)
+    } else {
+      navigate('/home')
+    }
   }
 
   const handleContinue = () => {
@@ -111,6 +136,22 @@ export default function StepDFormatSelection() {
       return
     }
     setError(null)
+    
+    // For TRAINING flow, match is already created - just save format and navigate
+    if (matchId && flowType === 'TRAINING') {
+      setFormat(selectedFormatLocal.code)
+      navigate(`/matches/${matchId}/summary`)
+      return
+    }
+    
+    // For CHALLENGE flow with matchId, also skip creation
+    if (matchId && flowType === 'CHALLENGE') {
+      setFormat(selectedFormatLocal.code)
+      navigate(`/matches/${matchId}/summary`)
+      return
+    }
+    
+    // For other flows, create match
     createMatchMutation.mutate(selectedFormatLocal)
   }
 

@@ -12,12 +12,22 @@ type Team = {
 }
 
 type FormatCode = 'FUTSAL' | 'F5' | 'F7' | 'F11'
+type FlowType = 'TRAINING' | 'CHALLENGE'
+type ChallengeStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED'
 
 type MatchDraftState = {
   selectedSport: Sport | null
   homeTeam: Team | null
   awayTeam: Team | null
   format: FormatCode | null
+  
+  // Training vs Challenge flow
+  flowType: FlowType | null
+  matchId: string | null  // Created match ID (for TRAINING: immediate, CHALLENGE: after accept)
+  challengeId: string | null  // For CHALLENGE flow
+  awayCaptainUserId: string | null  // For challenge flow
+  challengeStatus: ChallengeStatus | null
+  challengeMessage: string | null  // Optional message to away captain
   
   // Venue booking details
   venueId: string | null
@@ -39,6 +49,12 @@ type MatchDraftState = {
   setHomeTeam: (team: Team) => void
   setAwayTeam: (team: Team) => void
   setFormat: (format: FormatCode) => void
+  setFlowType: (flowType: FlowType) => void
+  setMatchId: (matchId: string) => void
+  setChallengeId: (challengeId: string) => void
+  setAwayCaptain: (userId: string) => void
+  setChallengeStatus: (status: ChallengeStatus) => void
+  setChallengeMessage: (message: string) => void
   setVenueBooking: (data: {
     venueId?: string | null
     courtId?: string | null
@@ -63,6 +79,12 @@ const initialState = {
   homeTeam: null,
   awayTeam: null,
   format: null,
+  flowType: null,
+  matchId: null,
+  challengeId: null,
+  awayCaptainUserId: null,
+  challengeStatus: null,
+  challengeMessage: null,
   venueId: null,
   courtId: null,
   scheduledAt: null,
@@ -85,6 +107,12 @@ export const useMatchDraftStore = create<MatchDraftState>()(
       setHomeTeam: (team) => set({ homeTeam: team }),
       setAwayTeam: (team) => set({ awayTeam: team }),
       setFormat: (format) => set({ format }),
+      setFlowType: (flowType) => set({ flowType }),
+      setMatchId: (matchId) => set({ matchId }),
+      setChallengeId: (challengeId) => set({ challengeId }),
+      setAwayCaptain: (userId) => set({ awayCaptainUserId: userId }),
+      setChallengeStatus: (status) => set({ challengeStatus: status }),
+      setChallengeMessage: (message) => set({ challengeMessage: message }),
       setVenueBooking: (data) => set((state) => ({
         ...state,
         ...data
