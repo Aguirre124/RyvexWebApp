@@ -116,36 +116,8 @@ export default function MatchSummaryPage() {
   const homeTeam = summary.matchTeams?.find(t => t.side === 'HOME')
   const awayTeam = summary.matchTeams?.find(t => t.side === 'AWAY')
 
-  // DEBUG: Log booking data to check payment status
-  console.log('🔍 Booking Debug:', {
-    booking: summary.booking,
-    bookingId: summary.bookingId,
-    venue: summary.venue,
-    storedBookingId,
-    bookingDetails
-  })
-
-  // DEBUG: Check visibility data
-  console.log('👁️ Visibility Debug:', {
-    userId: user?.id,
-    createdById: summary.createdById,
-    isPublic: summary.isPublic,
-    shouldShowToggle: user?.id === summary.createdById
-  })
-
   // Check if booking has been paid - use paymentStatus field
   const isBookingPaid = bookingDetails?.paymentStatus === 'PAID'
-
-  // DEBUG: Check results button visibility (after isBookingPaid is defined)
-  console.log('📊 Results Button Debug:', {
-    paymentSuccess,
-    isBookingPaid,
-    userId: user?.id,
-    createdById: summary.createdById,
-    isCreator: user?.id === summary.createdById,
-    shouldShowButton: (paymentSuccess || isBookingPaid) && user?.id === summary.createdById,
-    matchResults
-  })
 
   // Extract counts from _count field
   const homeInvited = homeTeam?._count?.invites ?? 0
@@ -167,8 +139,8 @@ export default function MatchSummaryPage() {
   // Match is ready when players are ready AND challenge accepted AND venue scheduled
   const isMatchReady = homeReady && awayReady && challengeAccepted && isVenueScheduled
 
-  // Get field layout based on format
-  const formatCode = summary.format?.code || 'STANDARD_5V5'
+  // Get field layout based on format - always default to 5v5 for challenge matches
+  const formatCode = summary.format?.code || homeTeam?.format?.code || 'STANDARD_5V5'
   const fieldLayout = SOCCER_LAYOUTS_BY_FORMAT[formatCode] ?? SOCCER_LAYOUTS_BY_FORMAT['STANDARD_5V5']
 
   // Get accepted players for each team
@@ -241,8 +213,8 @@ export default function MatchSummaryPage() {
               label: 'Encuentro',
               content: (
                 <div className="space-y-4">
-                  {/* Format with Field View */}
-                  {(summary.format || homeTeam) && (
+                  {/* Format with Field View - Always show for matches with teams */}
+                  {(homeTeam || awayTeam) && (
                     <Card>
                       <div className="text-sm text-muted mb-4 text-center">
                         Jugadores en campo: <span className="font-semibold text-white">{homeTeam?.onFieldPlayers ?? summary.format?.onFieldPlayers ?? minRequired}</span>
@@ -334,10 +306,7 @@ export default function MatchSummaryPage() {
                       {/* Payment Button */}
                       {storedBookingId && !paymentSuccess && !isBookingPaid && (
                         <Button
-                          onClick={() => {
-                            console.log('💳 Opening payment modal for booking:', storedBookingId)
-                            setPaymentModalOpen(true)
-                          }}
+                        onClick={() => setPaymentModalOpen(true)}
                           variant="primary"
                           className="w-full mt-3"
                         >
@@ -498,27 +467,33 @@ export default function MatchSummaryPage() {
                         )}
                         
                         {/* Check permissions before showing invite button */}
-                        {summary.permissions?.canInviteHome !== false ? (
-                          <Button
-                            onClick={() => {
-                              setInviteModal({
-                                teamId: homeTeam.teamId,
-                                teamName: homeTeam.team.name,
-                                side: 'HOME'
-                              })
-                            }}
-                            variant="primary"
-                            className="w-full mt-2"
-                          >
-                            + Agregar jugador
-                          </Button>
-                        ) : (
-                          <div className="mt-2 p-3 bg-gray-800 border border-gray-600 rounded-lg text-center">
-                            <div className="text-gray-400 text-sm">
-                              🔒 Solo el capitán del equipo puede invitar jugadores
+                        {/* Only the home team captain can invite players to the home team */}
+                        {(() => {
+                          // Check if user is the home captain
+                          const isHomeCaptain = user?.id === homeTeam.team.captainId
+                          
+                          return isHomeCaptain ? (
+                            <Button
+                              onClick={() => {
+                                setInviteModal({
+                                  teamId: homeTeam.teamId,
+                                  teamName: homeTeam.team.name,
+                                  side: 'HOME'
+                                })
+                              }}
+                              variant="primary"
+                              className="w-full mt-2"
+                            >
+                              + Agregar jugador
+                            </Button>
+                          ) : (
+                            <div className="mt-2 p-3 bg-gray-800 border border-gray-600 rounded-lg text-center">
+                              <div className="text-gray-400 text-sm">
+                                🔒 Solo el capitán del equipo puede invitar jugadores
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )
+                        })()}
                       </div>
                     </Card>
                   )}
@@ -566,27 +541,32 @@ export default function MatchSummaryPage() {
                               ⏳ Esperando aceptación del capitán rival
                             </div>
                           </div>
-                        ) : summary.permissions?.canInviteAway !== false ? (
-                          <Button
-                            onClick={() => {
-                              setInviteModal({
-                                teamId: awayTeam.teamId,
-                                teamName: awayTeam.team.name,
-                                side: 'AWAY'
-                              })
-                            }}
-                            variant="primary"
-                            className="w-full mt-2"
-                          >
-                            + Agregar jugador
-                          </Button>
-                        ) : (
-                          <div className="mt-2 p-3 bg-gray-800 border border-gray-600 rounded-lg text-center">
-                            <div className="text-gray-400 text-sm">
-                              🔒 Solo el capitán del equipo puede invitar jugadores
+                        ) : (() => {
+                          // Check if user is the away captain
+                          const isAwayCaptain = user?.id === awayTeam.team.captainId
+                          
+                          return isAwayCaptain ? (
+                            <Button
+                              onClick={() => {
+                                setInviteModal({
+                                  teamId: awayTeam.teamId,
+                                  teamName: awayTeam.team.name,
+                                  side: 'AWAY'
+                                })
+                              }}
+                              variant="primary"
+                              className="w-full mt-2"
+                            >
+                              + Agregar jugador
+                            </Button>
+                          ) : (
+                            <div className="mt-2 p-3 bg-gray-800 border border-gray-600 rounded-lg text-center">
+                              <div className="text-gray-400 text-sm">
+                                🔒 Solo el capitán del equipo puede invitar jugadores
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )
+                        })()}
                       </div>
                     </Card>
                   )}

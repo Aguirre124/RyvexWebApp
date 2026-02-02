@@ -7,6 +7,7 @@ import Badge from '../../components/Badge'
 import Tabs from '../../components/Tabs'
 import { useAuthStore } from '../auth/auth.store'
 import { matchesApi } from '../../services/endpoints'
+import { challengesApi } from '../../services/challenges.api'
 
 const mockCompetitions = [
   { id: 'c1', name: 'Liga de Domingo', games: 8 },
@@ -20,8 +21,53 @@ export default function HomePage() {
 
   const { data: matches = [], isLoading } = useQuery({
     queryKey: ['matches', 'my'],
-    queryFn: () => matchesApi.getMyMatches({ limit: 10 })
+    queryFn: () => matchesApi.getMyMatches({ limit: 10 }),
+    refetchOnWindowFocus: true, // Refetch when user returns to page
+    staleTime: 5000, // Consider data stale after 5 seconds
   })
+
+  // Fetch pending challenges count
+  const { data: pendingChallenges = [] } = useQuery({
+    queryKey: ['challenges', 'received', 'PENDING'],
+    queryFn: () => challengesApi.getReceivedChallenges('PENDING'),
+    refetchInterval: 30000, // Refresh every 30 seconds
+  })
+
+  // Track viewed challenges in localStorage
+  const [viewedChallenges, setViewedChallenges] = React.useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem('viewedChallenges')
+      return stored ? JSON.parse(stored) : []
+    } catch {
+      return []
+    }
+  })
+
+  // Filter out challenges that have been viewed
+  const unreadChallenges = pendingChallenges.filter(
+    challenge => !viewedChallenges.includes(challenge.challengeId)
+  )
+
+  const hasPendingChallenges = unreadChallenges.length > 0
+
+  const handleViewChallenges = () => {
+    // Mark all current challenges as viewed
+    const challengeIds = pendingChallenges.map(c => c.challengeId)
+    const newViewed = [...new Set([...viewedChallenges, ...challengeIds])]
+    setViewedChallenges(newViewed)
+    localStorage.setItem('viewedChallenges', JSON.stringify(newViewed))
+    navigate('/challenges/received')
+  }
+
+  // Clean up viewed challenges that are no longer pending
+  React.useEffect(() => {
+    const pendingIds = pendingChallenges.map(c => c.challengeId)
+    const stillRelevant = viewedChallenges.filter(id => pendingIds.includes(id))
+    if (stillRelevant.length !== viewedChallenges.length) {
+      setViewedChallenges(stillRelevant)
+      localStorage.setItem('viewedChallenges', JSON.stringify(stillRelevant))
+    }
+  }, [pendingChallenges, viewedChallenges])
 
   // Mutation to update match visibility
   const visibilityMutation = useMutation({
@@ -33,9 +79,8 @@ export default function HomePage() {
   })
 
   // Filter matches into my matches and public matches
-  // Backend already filters matches user has access to
   const myMatches = matches.filter(match => 
-    !match.isPublic || match.createdById === user?.id // Not public OR created by me (my private/public matches)
+    !match.isPublic || match.createdById === user?.id
   )
 
   const publicMatches = matches.filter(match => 
@@ -103,7 +148,30 @@ export default function HomePage() {
     <div className="min-h-screen pb-20">
       <Header name={user?.name} />
 
-      <main className="px-4 space-y-4">
+      {/* Challenge Notification Banner */}
+      {hasPendingChallenges && (
+        <div className="mx-4 mt-4">
+          <button
+            onClick={handleViewChallenges}
+            className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white p-4 rounded-lg flex items-center justify-between hover:opacity-90 transition-opacity"
+          >
+            <div className="flex items-center gap-3">
+              <div className="text-2xl">⚔️</div>
+              <div className="text-left">
+                <div className="font-bold">
+                  {unreadChallenges.length} Desafío{unreadChallenges.length !== 1 ? 's' : ''} Nuevo{unreadChallenges.length !== 1 ? 's' : ''}
+                </div>
+                <div className="text-sm opacity-90">
+                  Toca para ver y responder
+                </div>
+              </div>
+            </div>
+            <div className="text-2xl">→</div>
+          </button>
+        </div>
+      )}
+
+      <main className="px-4 space-y-4"  style={{ marginTop: hasPendingChallenges ? '1rem' : undefined }}>
         <div className="flex gap-3">
           <button 
             onClick={() => navigate('/matches/create')}

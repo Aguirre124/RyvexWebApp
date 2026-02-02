@@ -38,13 +38,6 @@ export default function ChallengeSearchStep() {
     !!selectedSport && debouncedQuery.trim().length >= 2
   )
   
-  // Debug: Log search results
-  React.useEffect(() => {
-    if (searchResults.length > 0) {
-      console.log('🔍 Search results received:', searchResults)
-    }
-  }, [searchResults])
-
   // Redirect if missing required data
   React.useEffect(() => {
     if (!selectedSport || !homeTeam || flowType !== 'CHALLENGE') {
@@ -75,15 +68,6 @@ export default function ChallengeSearchStep() {
         return
       }
 
-      console.log('🚀 Sending challenge invitation:', {
-        sportId: selectedSport.id,
-        matchType: 'FRIENDLY',
-        homeTeamId: homeTeam.id,
-        awayTeamId: teamId,
-        awayCaptainUserId: captainId,
-        message: message.trim()
-      })
-
       // Send challenge invitation (NO match creation yet)
       const challenge = await challengesApi.createChallengeInvitation({
         sportId: selectedSport.id,
@@ -94,8 +78,6 @@ export default function ChallengeSearchStep() {
         message: message.trim() || undefined
       })
 
-      console.log('✅ Challenge invitation sent:', challenge)
-
       // Update store with challengeId
       setChallengeId(challenge.challengeId)
       setAwayTeam({ id: teamId, name: selectedTeam.name })
@@ -105,11 +87,6 @@ export default function ChallengeSearchStep() {
 
       setShowSuccess(true)
     } catch (error: any) {
-      console.error('❌ Error sending challenge:', error)
-      console.error('Error response:', error.response)
-      console.error('Error details:', error.response?.data)
-      console.error('Error status:', error.response?.status)
-      
       let errorMessage = 'Error al enviar el desafío'
       
       if (error.response?.status === 500) {

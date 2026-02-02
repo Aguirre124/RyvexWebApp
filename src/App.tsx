@@ -9,6 +9,7 @@ import MatchSummaryPage from './features/matches/summary/MatchSummaryPage'
 import MatchResultsPage from './features/matches/pages/MatchResultsPage'
 import ChallengePage from './features/challenge/ChallengePage'
 import InviteAcceptPage from './features/invites/InviteAcceptPage'
+import ChallengesReceivedPage from './features/challenges/ChallengesReceivedPage'
 import MatchCreateLayout from './features/matches/create/MatchCreateLayout'
 import StepASportSelection from './features/matches/create/StepASportSelection'
 import StepBHomeTeamSelection from './features/matches/create/StepBHomeTeamSelection'
@@ -122,6 +123,16 @@ export default function App() {
         {/* Public Routes */}
         <Route path="/challenge/:token" element={<ChallengePage />} />
         <Route path="/invites/:token" element={<InviteAcceptPage />} />
+        
+        {/* Challenge Routes */}
+        <Route
+          path="/challenges/received"
+          element={
+            <ProtectedRoute>
+              <ChallengesReceivedPage />
+            </ProtectedRoute>
+          }
+        />
         
         <Route path="/" element={<Navigate to="/home" replace />} />
       </Routes>
