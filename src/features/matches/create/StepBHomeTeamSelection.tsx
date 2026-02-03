@@ -29,23 +29,35 @@ export default function StepBHomeTeamSelection() {
   const handleContinue = () => {
     if (!selectedTeam) return
     setHomeTeam(selectedTeam)
-    navigate('/matches/create/match-type')
+    
+    // Navigate based on flow type
+    const { flowType } = useMatchDraftStore.getState()
+    if (flowType === 'TRAINING') {
+      navigate('/matches/create/training-info')
+    } else if (flowType === 'CHALLENGE') {
+      navigate('/matches/create/challenge')
+    } else {
+      // Fallback to match type if not set
+      navigate('/matches/create/match-type')
+    }
   }
 
   const handleCreateTeam = () => {
     navigate('/teams/create?role=home')
   }
 
-  if (!selectedSport) {
-    navigate('/matches/create')
-    return null
-  }
+  // Validate required data on mount
+  React.useEffect(() => {
+    if (!selectedSport) {
+      navigate('/matches/create')
+    }
+  }, [selectedSport, navigate])
 
   return (
     <div className="space-y-4">
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold text-white mb-2">Selecciona tu equipo local</h2>
-        <p className="text-sm text-gray-400">Equipo HOME para {selectedSport.name}</p>
+        <p className="text-sm text-gray-400">Equipo HOME para {selectedSport?.name || 'tu deporte'}</p>
       </div>
 
       <Input

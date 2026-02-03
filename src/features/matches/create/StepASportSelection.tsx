@@ -5,10 +5,12 @@ import Card from '../../../components/Card'
 import Button from '../../../components/Button'
 import { sportsApi } from '../../../services/endpoints'
 import { useMatchDraftStore } from '../../../store/matchDraft.store'
+import { useWizardStore } from '../../../store/wizard.store'
 
 export default function StepASportSelection() {
   const navigate = useNavigate()
   const { setSport } = useMatchDraftStore()
+  const { setStep } = useWizardStore()
   const [selectedSport, setSelectedSport] = React.useState<{ id: string; name: string } | null>(null)
 
   const { data: sports = [], isLoading, error } = useQuery({
@@ -21,7 +23,8 @@ export default function StepASportSelection() {
       return
     }
     setSport(selectedSport)
-    navigate('/matches/create/home-team')
+    setStep(1) // Reset wizard to step 1 (format selection)
+    navigate('/matches/new')
   }
 
   if (isLoading) {

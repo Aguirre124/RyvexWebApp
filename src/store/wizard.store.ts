@@ -23,6 +23,7 @@ type WizardState = {
   
   // Actions
   setMatchId: (matchId: string) => void
+  setSportId: (sportId: string) => void
   setFormat: (format: FormatDetails) => void
   setHomeTeam: (teamId: string) => void
   setAwayTeam: (teamId: string, isPublic: boolean) => void
@@ -50,6 +51,8 @@ export const useWizardStore = create<WizardState>()(
       ...initialState,
       
       setMatchId: (matchId) => set({ matchId }),
+      
+      setSportId: (sportId) => set({ sportId }),
       
       setFormat: (format) => set({ selectedFormat: format }),
       

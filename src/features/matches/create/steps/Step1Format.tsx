@@ -1,32 +1,37 @@
 import React, { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import Card from '../../../../components/Card'
 import Button from '../../../../components/Button'
-import { formatsApi, matchesApi } from '../../../../services/endpoints'
+import { formatsApi, sportsApi } from '../../../../services/endpoints'
 import { useWizardStore } from '../../../../store/wizard.store'
+import { useMatchDraftStore } from '../../../../store/matchDraft.store'
 import type { FormatDetails } from '../../../../types/match.types'
 
 export default function Step1Format() {
-  const { sportId, selectedFormat, setFormat, setMatchId, setStep } = useWizardStore()
+  const navigate = useNavigate()
+  const { sportId, selectedFormat, setFormat: setWizardFormat, setSportId } = useWizardStore()
+  const { setFormat: setDraftFormat, setSport } = useMatchDraftStore()
   const [formats, setFormats] = useState<FormatDetails[]>([])
-  const [selectedFormatLocal, setSelectedFormatLocal] = useState<FormatDetails | null>(
-    selectedFormat
-  )
+  const [selectedFormatLocal, setSelectedFormatLocal] = useState<FormatDetails | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   React.useEffect(() => {
-    formatsApi.getAll(sportId).then(setFormats)
-  }, [sportId])
-
-  const createMatchMutation = useMutation({
-    mutationFn: async (format: FormatDetails) => {
-      // This old wizard is deprecated - use /matches/create flow instead
-      throw new Error('This wizard is deprecated. Please use the new Create Match flow.')
-    },
-    onError: (err: any) => {
-      setError('Este asistente está obsoleto. Por favor usa "Crear Partido" desde la página de inicio.')
+    // Fetch sports and set the football sportId if not already set or if it's the hardcoded 'football' string
+    const initializeSport = async () => {
+      if (!sportId || sportId === 'football') {
+        const sports = await sportsApi.getAll()
+        const footballSport = sports.find(s => s.name.toLowerCase().includes('fútbol') || s.name.toLowerCase().includes('football'))
+        if (footballSport) {
+          setSportId(footballSport.id)
+          setSport(footballSport)
+          formatsApi.getAll(footballSport.id).then(setFormats)
+        }
+      } else {
+        formatsApi.getAll(sportId).then(setFormats)
+      }
     }
-  })
+    initializeSport()
+  }, [])
 
   const handleContinue = () => {
     if (!selectedFormatLocal) {
@@ -34,7 +39,22 @@ export default function Step1Format() {
       return
     }
     setError(null)
-    createMatchMutation.mutate(selectedFormatLocal)
+    
+    // Save format to both stores
+    setWizardFormat(selectedFormatLocal)
+    setDraftFormat(selectedFormatLocal.code as 'FUTSAL' | 'F5' | 'F7' | 'F11')
+    
+    // Set sport in draft store using sportId from wizard and format
+    // We construct a minimal sport object since FormatDetails doesn't include the full sport
+    if (sportId) {
+      setSport({ 
+        id: sportId, 
+        name: selectedFormatLocal.name.includes('Fútbol') ? 'Fútbol' : 'Fútbol'  // Default to Fútbol
+      })
+    }
+    
+    // Navigate to match type selection (Training vs Challenge)
+    navigate('/matches/create/match-type')
   }
 
   return (
@@ -73,10 +93,10 @@ export default function Step1Format() {
 
       <Button
         onClick={handleContinue}
-        disabled={createMatchMutation.isPending}
+        disabled={!selectedFormatLocal}
         variant="primary"
       >
-        {createMatchMutation.isPending ? 'Creando...' : 'Continuar'}
+        Continuar
       </Button>
     </div>
   )

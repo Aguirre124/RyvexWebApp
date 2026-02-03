@@ -50,10 +50,22 @@ export default function StepDFormatSelection() {
   const navigate = useNavigate()
   const location = useLocation()
   const queryClient = useQueryClient()
-  const { selectedSport, homeTeam, awayTeam, flowType, matchId: storeMatchId, setFormat, resetDraft } = useMatchDraftStore()
+  const { selectedSport, homeTeam, awayTeam, flowType, matchId: storeMatchId, format: savedFormat, setFormat, resetDraft } = useMatchDraftStore()
   const [selectedFormatLocal, setSelectedFormatLocal] = useState<FormatOption | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
+
+  // Clear any previously saved format when component mounts
+  React.useEffect(() => {
+    // Reset selectedFormatLocal to null on mount
+    setSelectedFormatLocal(null)
+    console.log('📋 Format Selection mounted - selectedFormatLocal reset to null')
+  }, [])
+
+  // Debug: log selection changes
+  React.useEffect(() => {
+    console.log('📋 selectedFormatLocal changed:', selectedFormatLocal?.code || 'null')
+  }, [selectedFormatLocal])
 
   // Get matchId from store or navigation state (fallback)
   const matchId = storeMatchId || (location.state as any)?.matchId
@@ -155,10 +167,18 @@ export default function StepDFormatSelection() {
     createMatchMutation.mutate(selectedFormatLocal)
   }
 
-  if (!selectedSport || !homeTeam || !awayTeam) {
-    navigate('/matches/create')
-    return null
-  }
+  // Validate required data on mount
+  React.useEffect(() => {
+    if (!selectedSport || !homeTeam) {
+      console.warn('⚠️ Missing required data, redirecting to sport selection')
+      navigate('/matches/create')
+    }
+    // For legacy flows without flowType, require awayTeam
+    if (!flowType && !awayTeam) {
+      console.warn('⚠️ Legacy flow missing awayTeam, redirecting')
+      navigate('/matches/create')
+    }
+  }, [selectedSport, homeTeam, awayTeam, flowType, navigate])
 
   return (
     <div className="space-y-4">
@@ -195,7 +215,10 @@ export default function StepDFormatSelection() {
           <Card
             key={format.code}
             selected={selectedFormatLocal?.code === format.code}
-            onClick={() => setSelectedFormatLocal(format)}
+            onClick={() => {
+              console.log('Format clicked:', format.code)
+              setSelectedFormatLocal(format)
+            }}
           >
             <div className="text-center">
               <div className="text-xl font-bold text-white mb-2">{format.name}</div>
@@ -212,15 +235,27 @@ export default function StepDFormatSelection() {
       </div>
 
       <div className="flex gap-3">
-        <Button onClick={() => navigate('/matches/create/away-team')} variant="secondary">
+        <Button 
+          onClick={() => {
+            // Navigate back based on flow type
+            if (flowType === 'TRAINING') {
+              navigate('/matches/create/training-info')
+            } else if (flowType === 'CHALLENGE') {
+              navigate('/matches/create/challenge')
+            } else {
+              navigate('/matches/create/away-team')
+            }
+          }} 
+          variant="secondary"
+        >
           Atrás
         </Button>
         <Button
           onClick={handleContinue}
-          disabled={createMatchMutation.isPending}
+          disabled={!selectedFormatLocal || createMatchMutation.isPending}
           variant="primary"
         >
-          {createMatchMutation.isPending ? 'Creando partido...' : 'Crear partido'}
+          {createMatchMutation.isPending ? 'Creando partido...' : 'Continuar'}
         </Button>
       </div>
 

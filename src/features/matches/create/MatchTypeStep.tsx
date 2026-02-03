@@ -8,31 +8,27 @@ type FlowOption = 'TRAINING' | 'CHALLENGE'
 
 export default function MatchTypeStep() {
   const navigate = useNavigate()
-  const { flowType, setFlowType, selectedSport, homeTeam } = useMatchDraftStore()
+  const { flowType, setFlowType, selectedSport, format } = useMatchDraftStore()
   const [selected, setSelected] = React.useState<FlowOption | null>(flowType)
 
   // Redirect if missing required data
   React.useEffect(() => {
-    if (!selectedSport || !homeTeam) {
+    if (!selectedSport) {
       navigate('/matches/create')
     }
-  }, [selectedSport, homeTeam, navigate])
+  }, [selectedSport, navigate])
 
   const handleContinue = () => {
     if (!selected) return
     
     setFlowType(selected)
     
-    // Route based on flow type
-    if (selected === 'TRAINING') {
-      navigate('/matches/create/training-info')
-    } else {
-      navigate('/matches/create/challenge')
-    }
+    // Navigate to home team selection after choosing match type
+    navigate('/matches/create/home-team')
   }
 
   const handleBack = () => {
-    navigate('/matches/create/home-team')
+    navigate('/matches/new')
   }
 
   const flowOptions: Array<{
