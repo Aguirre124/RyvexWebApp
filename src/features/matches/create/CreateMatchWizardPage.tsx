@@ -6,8 +6,6 @@ import Step2Teams from './steps/Step2Teams'
 import Step3Invites from './steps/Step3Invites'
 import Step4Summary from './steps/Step4Summary'
 
-const stepLabels = ['Formato', 'Equipos', 'Invitaciones', 'Resumen']
-
 export default function CreateMatchWizardPage() {
   const currentStep = useWizardStore((s) => s.currentStep)
 
@@ -32,7 +30,7 @@ export default function CreateMatchWizardPage() {
         <WizardProgress
           currentStep={currentStep}
           totalSteps={4}
-          stepLabels={stepLabels}
+          title="Creación de partido"
         />
         {renderStep()}
       </div>

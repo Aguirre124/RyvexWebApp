@@ -2,6 +2,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import Card from '../../../components/Card'
 import Button from '../../../components/Button'
+import WizardProgress from '../../../components/WizardProgress'
 import { useMatchDraftStore } from '../../../store/matchDraft.store'
 import { useCreateMatchMutation } from './hooks/useMatchFlowHooks'
 import type { CreateMatchResponse } from '../../../services/matches.api'
@@ -67,6 +68,13 @@ export default function TrainingInfoStep() {
 
   return (
     <div className="space-y-6">
+      {/* Progress Bar */}
+      <WizardProgress
+        currentStep={4}
+        totalSteps={4}
+        title="Creación de partido"
+      />
+
       {/* Header */}
       <div className="text-center">
         <h2 className="text-2xl font-bold text-white mb-2">Entrenamiento</h2>

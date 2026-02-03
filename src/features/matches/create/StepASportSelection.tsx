@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import Card from '../../../components/Card'
 import Button from '../../../components/Button'
+import WizardProgress from '../../../components/WizardProgress'
 import { sportsApi } from '../../../services/endpoints'
 import { useMatchDraftStore } from '../../../store/matchDraft.store'
 import { useWizardStore } from '../../../store/wizard.store'
@@ -30,6 +31,11 @@ export default function StepASportSelection() {
   if (isLoading) {
     return (
       <div className="space-y-4">
+        <WizardProgress
+          currentStep={1}
+          totalSteps={4}
+          title="Creación de partido"
+        />
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold mb-2 text-white">Selecciona el deporte</h2>
           <p className="text-sm text-gray-400">Cargando deportes disponibles...</p>
@@ -46,6 +52,11 @@ export default function StepASportSelection() {
   if (error) {
     return (
       <div className="space-y-4">
+        <WizardProgress
+          currentStep={1}
+          totalSteps={4}
+          title="Creación de partido"
+        />
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold mb-2 text-white">Error</h2>
           <p className="text-sm text-gray-400">No se pudieron cargar los deportes</p>
@@ -66,6 +77,11 @@ export default function StepASportSelection() {
   if (sports.length === 0) {
     return (
       <div className="space-y-4">
+        <WizardProgress
+          currentStep={1}
+          totalSteps={4}
+          title="Creación de partido"
+        />
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold mb-2 text-white">Selecciona el deporte</h2>
         </div>
@@ -80,6 +96,11 @@ export default function StepASportSelection() {
 
   return (
     <div className="space-y-4">
+      <WizardProgress
+        currentStep={1}
+        totalSteps={4}
+        title="Creación de partido"
+      />
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold mb-2 text-white">Selecciona el deporte</h2>
         <p className="text-sm text-gray-400">Elige el deporte para tu partido</p>

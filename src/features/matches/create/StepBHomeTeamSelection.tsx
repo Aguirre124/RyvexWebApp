@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import Card from '../../../components/Card'
 import Button from '../../../components/Button'
 import Input from '../../../components/Input'
+import WizardProgress from '../../../components/WizardProgress'
 import { teamsApi } from '../../../services/endpoints'
 import { useMatchDraftStore } from '../../../store/matchDraft.store'
 import { useDebounce } from '../../../hooks/useDebounce'
@@ -55,6 +56,13 @@ export default function StepBHomeTeamSelection() {
 
   return (
     <div className="space-y-4">
+      {/* Progress Bar */}
+      <WizardProgress
+        currentStep={3}
+        totalSteps={4}
+        title="Creación de partido"
+      />
+
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold text-white mb-2">Selecciona tu equipo local</h2>
         <p className="text-sm text-gray-400">Equipo HOME para {selectedSport?.name || 'tu deporte'}</p>
