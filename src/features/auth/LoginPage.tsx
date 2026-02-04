@@ -8,6 +8,7 @@ import Input from '../../components/Input'
 import Divider from '../../components/Divider'
 import TermsModal from './TermsModal'
 import { useAuthStore } from './auth.store'
+import { consumeReturnTo } from '../../utils/returnTo'
 import logo from '../../assets/logo.png'
 
 const loginSchema = z.object({
@@ -49,7 +50,14 @@ export default function LoginPage() {
       } else {
         await registerUser(data.name, data.email, data.password)
       }
-      navigate('/home')
+      
+      // Check for returnTo and navigate accordingly
+      const returnTo = consumeReturnTo()
+      if (returnTo) {
+        navigate(returnTo)
+      } else {
+        navigate('/home')
+      }
     } catch (e: any) {
       setError(e.message || 'An error occurred')
     }

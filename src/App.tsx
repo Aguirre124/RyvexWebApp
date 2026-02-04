@@ -8,7 +8,7 @@ import CreateMatchWizardPage from './features/matches/create/CreateMatchWizardPa
 import MatchSummaryPage from './features/matches/summary/MatchSummaryPage'
 import MatchResultsPage from './features/matches/pages/MatchResultsPage'
 import ChallengePage from './features/challenge/ChallengePage'
-import InviteAcceptPage from './features/invites/InviteAcceptPage'
+import InviteTokenPage from './features/invites/InviteTokenPage'
 import ChallengesReceivedPage from './features/challenges/ChallengesReceivedPage'
 import MatchCreateLayout from './features/matches/create/MatchCreateLayout'
 import StepASportSelection from './features/matches/create/StepASportSelection'
@@ -122,7 +122,7 @@ export default function App() {
         
         {/* Public Routes */}
         <Route path="/challenge/:token" element={<ChallengePage />} />
-        <Route path="/invites/:token" element={<InviteAcceptPage />} />
+        <Route path="/invites/:token" element={<InviteTokenPage />} />
         
         {/* Challenge Routes */}
         <Route

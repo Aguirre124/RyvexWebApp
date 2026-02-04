@@ -51,6 +51,7 @@ export default function InvitePlayerModal({
   const [showEmailForm, setShowEmailForm] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [successDetails, setSuccessDetails] = useState<{ emailSent: number; inApp: number } | null>(null)
   const [selectedRole, setSelectedRole] = useState('')
   const queryClient = useQueryClient()
   const debouncedQuery = useDebounce(query, 350)
@@ -97,14 +98,27 @@ export default function InvitePlayerModal({
 
       const failures = results.filter(r => r.status === 'rejected')
       if (failures.length > 0) {
+        console.error('[INVITE] Failed invitations:', failures)
         throw new Error(`${failures.length} invitación(es) fallaron`)
       }
 
-      return results
+      // Count delivery channels
+      const emailSent = results.filter(r => 
+        r.status === 'fulfilled' && r.value?.deliveryChannel === 'EMAIL'
+      ).length
+      
+      const inApp = results.filter(r => 
+        r.status === 'fulfilled' && r.value?.deliveryChannel === 'IN_APP'
+      ).length
+      
+      console.log('[INVITE] Success summary:', { total: results.length, emailSent, inApp })
+
+      return { results, emailSent, inApp }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       setSuccess(true)
       setError(null)
+      setSuccessDetails({ emailSent: data.emailSent, inApp: data.inApp })
       setPendingInvites([]) // Clear the pending invites list
       
       // Refresh match summary to update counts
@@ -225,6 +239,27 @@ export default function InvitePlayerModal({
                 </svg>
               </div>
               <div className="text-white font-semibold">¡Invitación enviada!</div>
+              {successDetails && (
+                <div className="text-sm text-gray-400 space-y-1">
+                  {successDetails.emailSent > 0 && (
+                    <p className="flex items-center justify-center gap-2">
+                      <span>📧</span>
+                      <span>{successDetails.emailSent} por email</span>
+                    </p>
+                  )}
+                  {successDetails.inApp > 0 && (
+                    <p className="flex items-center justify-center gap-2">
+                      <span>🔔</span>
+                      <span>{successDetails.inApp} en la app</span>
+                    </p>
+                  )}
+                  {successDetails.emailSent === 0 && successDetails.inApp === 0 && (
+                    <p className="text-yellow-400">
+                      ⚠️ Las invitaciones se crearon pero revisa los logs del servidor
+                    </p>
+                  )}
+                </div>
+              )}
               <p className="text-sm text-gray-400">
                 La invitación ha sido enviada exitosamente
               </p>

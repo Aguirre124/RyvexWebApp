@@ -132,13 +132,26 @@ export const invitesApi = {
       message?: string
       suggestedRoleCode?: string
     }
-  ): Promise<void> => {
+  ): Promise<{ id: string; deliveryChannel?: string }> => {
     // Normalize suggestedRoleCode: empty string becomes undefined
     const normalizedPayload = {
       ...payload,
       suggestedRoleCode: payload.suggestedRoleCode?.trim() || undefined
     }
-    await apiClient.post(`/invites/matches/${matchId}`, normalizedPayload)
+    
+    console.log('[INVITE DEBUG] Sending invite:', {
+      matchId,
+      hasEmail: !!payload.inviteeEmail,
+      hasUserId: !!payload.inviteeUserId,
+      email: payload.inviteeEmail,
+      payload: normalizedPayload
+    })
+    
+    const { data } = await apiClient.post(`/invites/matches/${matchId}`, normalizedPayload)
+    
+    console.log('[INVITE DEBUG] Backend response:', data)
+    
+    return data
   },
 
   accept: async (token: string): Promise<{ matchId: string }> => {

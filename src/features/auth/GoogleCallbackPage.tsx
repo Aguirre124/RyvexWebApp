@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from './auth.store'
+import { consumeReturnTo } from '../../utils/returnTo'
 
 export default function GoogleCallbackPage() {
   const navigate = useNavigate()
@@ -55,10 +56,17 @@ export default function GoogleCallbackPage() {
           throw new Error('El estado de autenticación no se guardó correctamente')
         }
         
-        console.log('Auth state verified, navigating to home')
+        console.log('Auth state verified, navigating...')
         
-        // Navigate to home
-        navigate('/home', { replace: true })
+        // Check for returnTo and navigate accordingly
+        const returnTo = consumeReturnTo()
+        if (returnTo) {
+          console.log('Redirecting to returnTo:', returnTo)
+          navigate(returnTo, { replace: true })
+        } else {
+          console.log('No returnTo, navigating to home')
+          navigate('/home', { replace: true })
+        }
       } catch (e: any) {
         console.error('Google callback error:', e)
         setError(e.message || 'Error en login con Google')
